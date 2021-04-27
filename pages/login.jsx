@@ -10,7 +10,7 @@ import { useRouter } from "next/router";
 import { useCookies } from "react-cookie";
 import { useForm, userForm } from "react-hook-form";
 import isValidToken from "../utils/isValidToken";
-import { isBrowser } from "../utils/getAbsoluteUrl";
+import { isBrowser } from "../utils/getAbsoluteURL";
 
 const useStyles = makeStyles(() => ({
   container: {

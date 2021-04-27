@@ -2,7 +2,7 @@ import { Button, Container, makeStyles } from "@material-ui/core";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import { useCookies, withCookies } from "react-cookie";
-import { isBrowser } from "../utils/getAbsoluteUrl";
+import { isBrowser } from "../utils/getAbsoluteURL";
 import isValidToken from "../utils/isValidToken";
 
 const useStyles = makeStyles(() => ({
