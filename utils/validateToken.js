@@ -1,4 +1,5 @@
 import jwt_decode from "jwt-decode";
+import jwt from "jsonwebtoken";
 
 const isValidToken = (token) => {
   try {
@@ -10,3 +11,12 @@ const isValidToken = (token) => {
 };
 
 export default isValidToken;
+
+export function verifyToken(jwtToken) {
+  try {
+    return jwt.verify(jwtToken, "somesecret");
+  } catch (e) {
+    console.log("e:", e);
+    return false;
+  }
+}

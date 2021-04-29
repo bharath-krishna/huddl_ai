@@ -1,55 +1,78 @@
-import { Button, Container, makeStyles } from "@material-ui/core";
-import { useRouter } from "next/router";
+import {
+  Button,
+  Container,
+  FormControl,
+  makeStyles,
+  TextField,
+} from "@material-ui/core";
 import React, { useEffect } from "react";
-import { useCookies, withCookies } from "react-cookie";
+import { useRouter } from "next/router";
+import { useCookies } from "react-cookie";
+import { useForm, userForm } from "react-hook-form";
+import { verifyToken } from "../utils/validateToken";
 import { isBrowser } from "../utils/getAbsoluteURL";
-import isValidToken from "../utils/isValidToken";
 
 const useStyles = makeStyles(() => ({
   container: {
     display: "flex",
     justifyContent: "center",
   },
+  formControl: {
+    minWidth: 400,
+    paddingTop: "40px",
+  },
 }));
 
-function index({ cookies, allCookies }) {
+function login() {
   const classes = useStyles();
   const router = useRouter();
-  const [cookie, removeCookie] = useCookies(["user"]);
+  const [cookie, setCookie] = useCookies(["user"]);
+  const { register, control, handleSubmit, reset } = useForm();
 
-  const handlogout = () => {
-    removeCookie("user");
-    router.push("/login");
+  const handleLogin = (data) => {
+    const profile = verifyToken(data.token);
+    if (profile) {
+      setCookie("user", {
+        maxAge: 3600,
+        sameSite: true,
+        token: data.token,
+      });
+      router.push("/profile/" + `${profile.name}`);
+    } else {
+      alert("Invalid Token");
+    }
   };
-
   return (
     <Container className={classes.container}>
-      index Page
-      <Button onClick={handlogout}>Logout</Button>
+      Login Page
+      <form onSubmit={handleSubmit(handleLogin)}>
+        <FormControl className={classes.formControl}>
+          <TextField
+            {...register("token", {
+              required: "Required",
+            })}
+            fullWidth
+          />
+          <Button type="Submit">Submit</Button>
+        </FormControl>
+      </form>
     </Container>
   );
 }
 
 export const getServerSideProps = async ({ req, res }) => {
   if (!isBrowser() && res) {
-    console.log(req.cookies.user);
     if (req.cookies.user && req.cookies.user !== "undefined") {
       const { token } = JSON.parse(req.cookies.user);
-      if (!isValidToken(token)) {
+      const profile = verifyToken(token);
+      if (profile) {
         return {
           redirect: {
             permanent: false,
-            destination: "/login",
+            destination: "/profile/" + `${profile.name}`,
           },
         };
       }
-    } else {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/login",
-        },
-      };
     }
   }
   return {
@@ -57,4 +80,4 @@ export const getServerSideProps = async ({ req, res }) => {
   };
 };
 
-export default withCookies(index);
+export default login;
