@@ -1,19 +1,49 @@
-import { Button, Container, makeStyles } from "@material-ui/core";
+import {
+  Avatar,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  CardMedia,
+  Container,
+  Grid,
+  IconButton,
+  List,
+  makeStyles,
+  Typography,
+} from "@material-ui/core";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useCookies, withCookies } from "react-cookie";
+import { connect } from "react-redux";
+import { setFeeds } from "../redux/actions/feeds";
 import { getById } from "../utils/general";
 import getAbsoluteURL, { isBrowser } from "../utils/getAbsoluteURL";
 import { verifyToken } from "../utils/validateToken";
+import axios from "axios";
+import CustomAppBar from "./components/CustomAppBar";
+import FavoriteIcon from "@material-ui/icons/Favorite";
+import ShareIcon from "@material-ui/icons/Share";
+import { red } from "@material-ui/core/colors";
+import FeedItem from "./components/FeedItem";
 
 const useStyles = makeStyles(() => ({
   container: {
     display: "flex",
     justifyContent: "center",
+    maxWidth: 600,
+  },
+  media: {
+    height: 0,
+    paddingTop: "56.25%", // 16:9
+  },
+  avatar: {
+    backgroundColor: red[500],
   },
 }));
 
-function index({ cookies, allCookies, profile, feeds }) {
+function index({ cookies, allCookies, profile, feeds, setFeeds }) {
   const classes = useStyles();
   const router = useRouter();
   const { name } = router.query;
@@ -30,6 +60,17 @@ function index({ cookies, allCookies, profile, feeds }) {
         setUnauthorized(true);
       }
     });
+
+    axios
+      .get("/api/feeds", {
+        headers: { Authorization: `Bearer ${cookie.user.token}` },
+      })
+      .then(({ data }) => {
+        setFeeds(data);
+      })
+      .catch((err) => {
+        alert("Failed to fetch feeds");
+      });
   }, []);
   const handlogout = () => {
     removeCookie("user");
@@ -37,19 +78,23 @@ function index({ cookies, allCookies, profile, feeds }) {
   };
 
   return (
-    <Container className={classes.container}>
-      {unauthorized ? (
-        <div>
-          You are not authorized to view others private pages, please visit
-          /profile/userid to access public profile
-        </div>
-      ) : (
-        <div>
-          index Page
-          <Button onClick={handlogout}>Logout</Button>
-        </div>
-      )}
-    </Container>
+    <React.Fragment>
+      <CustomAppBar />
+      <Container>
+        <Grid container className={classes.container}>
+          <Grid item sm={4} xs={12}>
+            profile section
+          </Grid>
+          <Grid item sm={8} xs={12}>
+            <List>
+              {feeds.map((feed, index) => {
+                return <FeedItem feed={feed} key={index} />;
+              })}
+            </List>
+          </Grid>
+        </Grid>
+      </Container>
+    </React.Fragment>
   );
 }
 
@@ -70,13 +115,13 @@ export const getServerSideProps = async ({ req, res }) => {
         let resp = await fetch(url, { headers: { Authorization: token } });
         const profile = await resp.json();
 
-        url = getAbsoluteURL("/api/feeds", req);
-        resp = await fetch(url, { headers: { Authorization: token } });
-        const feeds = await resp.json();
+        // url = getAbsoluteURL("/api/feeds", req);
+        // resp = await fetch(url, { headers: { Authorization: token } });
+        // const feeds = await resp.json();
         return {
           props: {
             profile: profile,
-            feeds: feeds,
+            // feeds: feeds,
           },
         };
       }
@@ -94,4 +139,12 @@ export const getServerSideProps = async ({ req, res }) => {
   };
 };
 
-export default withCookies(index);
+function mapStateToProps(state) {
+  return { feeds: state.feeds };
+}
+
+function mapDispatchToProps(dispatch) {
+  return { setFeeds: (feeds) => dispatch(setFeeds(feeds)) };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withCookies(index));

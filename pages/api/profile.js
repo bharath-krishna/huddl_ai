@@ -7,7 +7,7 @@ export default async (req, res) => {
   }
   const token = req.headers.authorization;
 
-  if (verifyToken(token)) {
+  if (!verifyToken(token)) {
     return res.status(401).json({ error: "Unuthorized" });
   }
 

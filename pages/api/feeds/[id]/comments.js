@@ -1,5 +1,5 @@
-import { verifyToken } from "../../../utils/validateToken";
-import firebase from "../../../utils/firebaseClient";
+import { verifyToken } from "../../../../utils/validateToken";
+import firebase from "../../../../utils/firebaseClient";
 
 export default async (req, res) => {
   if (!(req.headers && req.headers.authorization)) {
@@ -18,13 +18,12 @@ export default async (req, res) => {
     }
   }
 
-  const collectionName = "feeds";
+  const collectionName = "comments";
   let resp = [];
   if (req.method === "GET") {
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .orderBy("createdAt", "desc")
       .get()
       .then((data) => {
         return data.docs.map((doc) => {
@@ -45,8 +44,7 @@ export default async (req, res) => {
       .collection(collectionName)
       .add({
         ...body,
-        // createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdAt: new Date().toISOString(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         createdBy: profile.name,
       })
       .then((doc) => {

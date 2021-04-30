@@ -1,5 +1,5 @@
-import { verifyToken } from "../../../utils/validateToken";
-import firebase from "../../../utils/firebaseClient";
+import { verifyToken } from "../../../../utils/validateToken";
+import firebase from "../../../../utils/firebaseClient";
 
 export default async (req, res) => {
   if (!(req.headers && req.headers.authorization)) {
@@ -38,6 +38,7 @@ export default async (req, res) => {
       });
     });
 
+  console.log(firebase.firestore.FieldValue.serverTimestamp());
   res.statusCode = 200;
   let resp = [];
   const respData = data.map((doc) => {
@@ -46,7 +47,6 @@ export default async (req, res) => {
       return doc;
     }
   });
-  console.log(resp);
 
   if (resp.length === 0) {
     res.statusCode = 404;

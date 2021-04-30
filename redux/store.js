@@ -3,6 +3,7 @@ import { applyMiddleware, createStore } from "redux";
 import { createWrapper } from "next-redux-wrapper";
 import { combineReducers } from "redux";
 import thunkMiddleware from "redux-thunk";
+import { feedsReducer } from "./reducers/feeds";
 
 const bindMiddleware = (middleware) => {
   if (process.env.NODE_ENV !== "production") {
@@ -12,7 +13,7 @@ const bindMiddleware = (middleware) => {
   return applyMiddleware(...middleware);
 };
 
-const allReducers = combineReducers({});
+const allReducers = combineReducers({ feeds: feedsReducer });
 
 const reducer = (state, action) => {
   if (action.type === HYDRATE) {
