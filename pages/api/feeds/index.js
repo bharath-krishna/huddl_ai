@@ -17,22 +17,38 @@ export default async (req, res) => {
   }
 
   const collectionName = "feeds";
+  let resp = [];
   if (req.method === "GET") {
-    const data = await firebase.firestore().collection(collectionName).get();
+    const data = await firebase
+      .firestore()
+      .collection(collectionName)
+      .get()
+      .then((data) => {
+        return data.docs.map((doc) => {
+          resp.push({ ...doc.data(), id: doc.id });
+        });
+      })
+      .catch((err) => {
+        res.json({ message: "Something went wrong" });
+      });
 
     res.statusCode = 200;
-    res.json(data.docs.map((doc) => doc.data()));
+    res.json(resp);
     return;
   } else if (req.method === "POST") {
     const body = req.body;
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .add(body);
-    console.log(data);
-
-    res.statusCode = 200;
-    res.json({ message: "Created Successfully" });
+      .add(body)
+      .then((doc) => {
+        res.statusCode = 200;
+        res.json({ message: `feed ${doc.id} Created Successfully` });
+      })
+      .catch((err) => {
+        res.statusCode = 400;
+        res.json({ message: "Something went wrong" });
+      });
     return;
   }
 };

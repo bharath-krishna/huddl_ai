@@ -28,20 +28,31 @@ export default async (req, res) => {
   const collectionName = "feeds";
 
   const { id } = req.query;
-  const data = await firebase.firestore().collection(collectionName).get();
+  const data = await firebase
+    .firestore()
+    .collection(collectionName)
+    .get()
+    .then((data) => {
+      return data.docs.map((doc) => {
+        return { ...doc.data(), id: doc.id };
+      });
+    });
 
   res.statusCode = 200;
-  const respData = data.docs.map((doc) => {
+  let resp = [];
+  const respData = data.map((doc) => {
     if (doc.id === id) {
-      return doc.data();
+      resp.push(doc);
+      return doc;
     }
   });
+  console.log(resp);
 
-  if (!respData[0]) {
+  if (resp.length === 0) {
     res.statusCode = 404;
     res.json({ message: "Not Found" });
   } else {
     res.statusCode = 200;
-    res.json(respData[0]);
+    res.json(resp[0]);
   }
 };

@@ -13,7 +13,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function index({ cookies, allCookies, profile }) {
+function index({ cookies, allCookies, profile, feeds }) {
   const classes = useStyles();
   const router = useRouter();
   const { name } = router.query;
@@ -66,12 +66,17 @@ export const getServerSideProps = async ({ req, res }) => {
           },
         };
       } else {
-        const url = getAbsoluteURL("/api/profile", req);
-        const resp = await fetch(url, { headers: { Authorization: token } });
+        let url = getAbsoluteURL("/api/profile", req);
+        let resp = await fetch(url, { headers: { Authorization: token } });
         const profile = await resp.json();
+
+        url = getAbsoluteURL("/api/feeds", req);
+        resp = await fetch(url, { headers: { Authorization: token } });
+        const feeds = await resp.json();
         return {
           props: {
             profile: profile,
+            feeds: feeds,
           },
         };
       }
