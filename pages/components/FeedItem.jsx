@@ -43,9 +43,9 @@ function FeedItem({ feed }) {
         title="Profile Image"
       />
       <CardContent className={classes.content}>
-        <Typography variant="h5">{feed.createdBy}</Typography>
-        <Typography variant="body1">{feed.message}</Typography>
-        <Typography variant="caption">{feed.createdAt}</Typography>
+        <Typography variant="h5">{feed?.createdBy}</Typography>
+        <Typography variant="body1">{feed?.message}</Typography>
+        <Typography variant="caption">{feed?.createdAt}</Typography>
       </CardContent>
       <CardActionArea>
         <CardActions>
