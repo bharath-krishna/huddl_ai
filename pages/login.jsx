@@ -37,7 +37,7 @@ function login() {
         sameSite: true,
         token: data.token,
       });
-      router.push("/profile/" + `${profile.name}`);
+      router.push("/" + `${profile.name}`);
     } else {
       alert("Invalid Token");
     }
@@ -69,7 +69,7 @@ export const getServerSideProps = async ({ req, res }) => {
         return {
           redirect: {
             permanent: false,
-            destination: "/profile/" + `${profile.name}`,
+            destination: "/" + `${profile.name}`,
           },
         };
       }
