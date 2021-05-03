@@ -46,15 +46,15 @@ const useStyles = makeStyles(() => ({
 function index({ cookies, allCookies, profile, feeds, setFeeds }) {
   const classes = useStyles();
   const router = useRouter();
-  const { name } = router.query;
+  const { userId } = router.query;
   const [cookie, removeCookie] = useCookies(["user"]);
   const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    if (profile.name !== name) {
+    if (profile.id !== userId) {
       // router.push("/");
     }
-    getById("profile", name).then((profile) => {
+    getById("profile", userId).then((profile) => {
       if (profile) {
       } else {
         setUnauthorized(true);
@@ -79,7 +79,7 @@ function index({ cookies, allCookies, profile, feeds, setFeeds }) {
 
   return (
     <React.Fragment>
-      <CustomAppBar />
+      <CustomAppBar handlogout={handlogout} />
       <Container>
         <Grid container className={classes.container}>
           <Grid item sm={4} xs={12}>
@@ -88,7 +88,9 @@ function index({ cookies, allCookies, profile, feeds, setFeeds }) {
           <Grid item sm={8} xs={12}>
             <List>
               {feeds.map((feed, index) => {
-                return <FeedItem feed={feed} key={index} />;
+                return (
+                  <FeedItem feed={feed} key={index} profile={profile[0]} />
+                );
               })}
             </List>
           </Grid>

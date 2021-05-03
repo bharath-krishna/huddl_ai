@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function CustomAppBar() {
+function CustomAppBar({ handlogout }) {
   const classes = useStyles();
   return (
     <div className={classes.appbar}>
@@ -38,7 +38,9 @@ function CustomAppBar() {
           <Typography variant="h6" className={classes.title}>
             Welcome
           </Typography>
-          <Button color="inherit">Logout</Button>
+          <Button color="inherit" onClick={handlogout}>
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
       <Toolbar />

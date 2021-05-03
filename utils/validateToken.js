@@ -16,7 +16,6 @@ export function verifyToken(jwtToken) {
   try {
     return jwt.verify(jwtToken, "somesecret");
   } catch (e) {
-    console.log("verifyToken Failed:", e);
     return false;
   }
 }

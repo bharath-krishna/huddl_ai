@@ -38,7 +38,6 @@ export default async (req, res) => {
       });
     });
 
-  console.log(firebase.firestore.FieldValue.serverTimestamp());
   res.statusCode = 200;
   let resp = [];
   const respData = data.map((doc) => {
