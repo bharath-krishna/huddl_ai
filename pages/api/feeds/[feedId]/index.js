@@ -8,55 +8,56 @@ export default async (req, res) => {
 
   let token = req.headers.authorization;
 
-  let profile = null;
   if (token.startsWith("Bearer ")) {
     const pos = "Bearer ".length;
     token = token.substring(pos);
-    const profile = verifyToken(token);
-    if (!profile) {
+    if (!verifyToken(token)) {
       return res.status(401).json({ error: "Unuthorized" });
     }
   }
 
-  const { profileId } = req.query;
-  const collectionName = "likes";
-  let resp = [];
   if (req.method === "GET") {
+    const collectionName = "feeds";
+
+    const { feedId } = req.query;
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .where("userId", "==", profileId)
       .get()
       .then((data) => {
         return data.docs.map((doc) => {
-          resp.push({ ...doc.data(), likeId: doc.id });
+          return { ...doc.data(), id: doc.id };
         });
-      })
-      .catch((err) => {
-        res.json({ message: "Something went wrong" });
       });
 
     res.statusCode = 200;
-    res.json(resp);
-    return;
-  } else if (req.method === "POST") {
+    let resp = [];
+    const respData = data.map((doc) => {
+      if (doc.id === feedId) {
+        resp.push(doc);
+        return doc;
+      }
+    });
+
+    if (resp.length === 0) {
+      res.statusCode = 404;
+      res.json({ message: "Not Found" });
+    } else {
+      res.statusCode = 200;
+      res.json(resp[0]);
+    }
+  } else if (req.method === "DELETE") {
     const body = req.body;
+    const collectionName = "feeds";
+
+    const { feedId } = req.query;
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .add({
-        ...body,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdBy: profile.name,
-      })
-      .then((doc) => {
-        res.statusCode = 200;
-        res.json({ message: `feed ${doc.id} Created Successfully` });
-      })
-      .catch((err) => {
-        res.statusCode = 400;
-        res.json({ message: "Something went wrong" });
-      });
-    return;
+      .doc(feedId)
+      .delete()
+      .then((result) => {})
+      .catch((err) => {});
+    res.json({ message: "Feed Deleted" });
   }
 };

@@ -7,10 +7,13 @@ import {
   CardHeader,
   CardMedia,
   Container,
+  FormControl,
   Grid,
   IconButton,
+  InputAdornment,
   List,
   makeStyles,
+  TextField,
   Typography,
 } from "@material-ui/core";
 import { useRouter } from "next/router";
@@ -18,6 +21,7 @@ import React, { useEffect, useState } from "react";
 import { useCookies, withCookies } from "react-cookie";
 import { connect } from "react-redux";
 import { setFeeds } from "../redux/actions/feeds";
+import { setUserProfile } from "../redux/actions/userProfileActions";
 import { getById } from "../utils/general";
 import getAbsoluteURL, { isBrowser } from "../utils/getAbsoluteURL";
 import { verifyToken } from "../utils/validateToken";
@@ -27,6 +31,9 @@ import FavoriteIcon from "@material-ui/icons/Favorite";
 import ShareIcon from "@material-ui/icons/Share";
 import { red } from "@material-ui/core/colors";
 import FeedItem from "./components/FeedItem";
+import { AccountCircle } from "@material-ui/icons";
+import { useForm } from "react-hook-form";
+import profile from "./api/profile";
 
 const useStyles = makeStyles(() => ({
   container: {
@@ -41,25 +48,51 @@ const useStyles = makeStyles(() => ({
   avatar: {
     backgroundColor: red[500],
   },
+  formControl: {
+    minWidth: 400,
+    paddingTop: "40px",
+  },
 }));
 
-function index({ cookies, allCookies, profile, feeds, setFeeds }) {
+function index({
+  cookies,
+  allCookies,
+  feeds,
+  setFeeds,
+  userProfile,
+  setUserProfile,
+}) {
   const classes = useStyles();
   const router = useRouter();
   const { userId } = router.query;
   const [cookie, removeCookie] = useCookies(["user"]);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { register, handleSubmit, control, reset } = useForm();
 
   useEffect(() => {
-    if (profile.id !== userId) {
-      // router.push("/");
-    }
     getById("profile", userId).then((profile) => {
       if (profile) {
+        setUserProfile({ ...profile, id: userId });
+        setLoading(false);
       } else {
         setUnauthorized(true);
       }
     });
+
+    axios
+      .get(`/api/profile/${userId}/likes`, {
+        headers: { Authorization: `Bearer ${cookie.user.token}` },
+      })
+      .then(({ data }) => {
+        if (data) {
+          setUserProfile({ ...userProfile, likes: data });
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        alert("Failed to fetch feeds");
+      });
 
     axios
       .get("/api/feeds", {
@@ -77,6 +110,22 @@ function index({ cookies, allCookies, profile, feeds, setFeeds }) {
     router.push("/login");
   };
 
+  const handleMessage = (data) => {
+    const body = {
+      message: data.message,
+    };
+    axios
+      .post("/api/feeds", body, {
+        headers: { Authorization: `Bearer ${cookie.user.token}` },
+      })
+      .then((result) => {
+        console.log(result);
+        if (result.statusText == "OK") {
+          setFeeds([result.data, ...feeds]);
+        }
+      });
+  };
+
   return (
     <React.Fragment>
       <CustomAppBar handlogout={handlogout} />
@@ -86,13 +135,39 @@ function index({ cookies, allCookies, profile, feeds, setFeeds }) {
             profile section
           </Grid>
           <Grid item sm={8} xs={12}>
-            <List>
-              {feeds.map((feed, index) => {
-                return (
-                  <FeedItem feed={feed} key={index} profile={profile[0]} />
-                );
-              })}
-            </List>
+            {loading ? (
+              <div>Loading....</div>
+            ) : (
+              <React.Fragment>
+                <form onSubmit={handleSubmit(handleMessage)}>
+                  <FormControl className={classes.formControl}>
+                    <TextField
+                      label="Enter message"
+                      {...register("message", {
+                        required: "Required",
+                      })}
+                      rows={4}
+                      fullWidth
+                      multiline
+                    />
+                    <Button type="submit" color="primary">
+                      Send
+                    </Button>
+                  </FormControl>
+                </form>
+                <List>
+                  {feeds.map((feed, index) => {
+                    return (
+                      <FeedItem
+                        feed={feed}
+                        key={index}
+                        // userProfile={userProfile}
+                      />
+                    );
+                  })}
+                </List>
+              </React.Fragment>
+            )}
           </Grid>
         </Grid>
       </Container>
@@ -100,11 +175,19 @@ function index({ cookies, allCookies, profile, feeds, setFeeds }) {
   );
 }
 
-export const getServerSideProps = async ({ req, res }) => {
+export const getServerSideProps = async ({ req, res, query }) => {
   if (!isBrowser() && res) {
     if (req.cookies.user && req.cookies.user !== "undefined") {
       const { token } = JSON.parse(req.cookies.user);
       const data = verifyToken(token);
+      if (query.userId !== data.id) {
+        return {
+          redirect: {
+            destination: "/",
+            permanent: false,
+          },
+        };
+      }
       if (!data) {
         return {
           redirect: {
@@ -113,18 +196,8 @@ export const getServerSideProps = async ({ req, res }) => {
           },
         };
       } else {
-        let url = getAbsoluteURL("/api/profile", req);
-        let resp = await fetch(url, { headers: { Authorization: token } });
-        const profile = await resp.json();
-
-        // url = getAbsoluteURL("/api/feeds", req);
-        // resp = await fetch(url, { headers: { Authorization: token } });
-        // const feeds = await resp.json();
         return {
-          props: {
-            profile: profile,
-            // feeds: feeds,
-          },
+          props: {},
         };
       }
     } else {
@@ -142,11 +215,14 @@ export const getServerSideProps = async ({ req, res }) => {
 };
 
 function mapStateToProps(state) {
-  return { feeds: state.feeds };
+  return { feeds: state.feeds, userProfile: state.userProfile };
 }
 
 function mapDispatchToProps(dispatch) {
-  return { setFeeds: (feeds) => dispatch(setFeeds(feeds)) };
+  return {
+    setFeeds: (feeds) => dispatch(setFeeds(feeds)),
+    setUserProfile: (profile) => dispatch(setUserProfile(profile)),
+  };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(withCookies(index));

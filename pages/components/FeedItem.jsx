@@ -23,6 +23,10 @@ import CommentIcon from "@material-ui/icons/Comment";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 import { getById } from "../../utils/general";
+import { connect } from "react-redux";
+import { setUserProfile } from "../../redux/actions/userProfileActions";
+import { setFeeds } from "../../redux/actions/feeds";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 const useStyles = makeStyles(() => ({
   card: {
@@ -38,28 +42,80 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function FeedItem({ feed, profile }) {
+function FeedItem({ feed, userProfile, setUserProfile }) {
   const classes = useStyles();
   const [likesCount, setLikesCount] = useState(0);
-  const [cookie, removeCookie] = useCookies(["user"]);
   const [userLiked, setUserLiked] = useState(false);
+  const [cookie, removeCookie] = useCookies(["user"]);
+  let cretedBy;
   useEffect(() => {
+    let count = 0;
+    userProfile.likes.map((like) => {
+      if (feed.id === like.feedId) {
+        count++;
+      }
+    });
+    setLikesCount(count);
+  }, []);
+
+  useEffect(() => {
+    userProfile.likes.map((like) => {
+      if (like.userId === userProfile.id) {
+        setUserLiked(true);
+      }
+    });
+  }, [userProfile]);
+
+  const handleLike = () => {
+    if (userLiked) {
+      setUserLiked(false);
+      setLikesCount(likesCount - 1);
+      let likes = [];
+      userProfile.likes.map((like) => {
+        if (feed.id !== like.feedId) {
+          likes.push(like);
+        }
+      });
+      setUserProfile({ ...userProfile, likes: likes });
+      axios
+        .get(`/api/feeds/${feed.id}/unlike`, {
+          headers: { Authorization: `Bearer ${cookie.user.token}` },
+        })
+        .then((resp) => {})
+        .then((result) => {})
+        .catch((err) => {
+          alert("Something went wrong");
+        });
+    } else {
+      setUserLiked(true);
+      setLikesCount(likesCount + 1);
+      let likes = userProfile.likes;
+      likes.push({ feedId: feed.id, userId: feed.createdBy.id });
+      setUserProfile({ ...userProfile, likes: likes });
+      axios
+        .get(`/api/feeds/${feed.id}/like`, {
+          headers: { Authorization: `Bearer ${cookie.user.token}` },
+        })
+        .then((resp) => {})
+        .then((result) => {})
+        .catch((err) => {
+          alert("Something went wrong");
+        });
+    }
+  };
+  const handleDeleteFeed = () => {
     axios
-      .get(`/api/likes/${feed.id}`, {
+      .delete(`/api/feeds/${feed.id}`, {
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
-      .then(({ data }) => {
-        setLikesCount(data.length);
-        data.map((like) => {
-          if (profile.id == like.userId) {
-            setUserLiked(true);
-          }
+      .then((result) => {
+        console.log(result);
+        axios.get(`/api/feeds/${feed.id}/unlike`, {
+          headers: { Authorization: `Bearer ${cookie.user.token}` },
         });
       })
-      .catch((err) => {
-        alert("Failed to fetch feeds");
-      });
-  }, []);
+      .catch((err) => {});
+  };
   return (
     <Card className={classes.card}>
       <CardMedia
@@ -68,29 +124,42 @@ function FeedItem({ feed, profile }) {
         title="Profile Image"
       />
       <CardContent className={classes.content}>
-        <Typography variant="h5">{feed?.createdBy}</Typography>
+        <Typography variant="h5">{feed?.createdBy.name}</Typography>
         <Typography variant="body1">{feed?.message}</Typography>
-        <IconButton aria-label="like">
+        <IconButton aria-label="like" onClick={handleLike}>
           {userLiked ? (
             <React.Fragment>
-              <FavoriteIcon color="secondary" /> {likesCount}
+              <FavoriteIcon color="secondary" />
             </React.Fragment>
           ) : (
             <FavoriteBorderIcon />
           )}
+          <Typography variant="subtitle1" color="secondary">
+            {likesCount}
+          </Typography>
         </IconButton>
-
         <IconButton aria-label="like">
           <CommentIcon />
         </IconButton>
-      </CardContent>
-      {/* <CardActions>
-        <IconButton aria-label="like">
-          <FavoriteIcon />
+        <IconButton aria-label="like" onClick={handleDeleteFeed}>
+          <DeleteIcon />
         </IconButton>
-      </CardActions> */}
+      </CardContent>
     </Card>
   );
 }
 
-export default FeedItem;
+function mapStateToProps(state) {
+  return { feeds: state.feeds, userProfile: state.userProfile };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    setFeeds: (feeds) => dispatch(setFeeds(feeds)),
+    setUserProfile: (profile) => dispatch(setUserProfile(profile)),
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(FeedItem);
+
+// export default FeedItem;

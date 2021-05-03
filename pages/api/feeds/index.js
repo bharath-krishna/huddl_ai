@@ -40,18 +40,20 @@ export default async (req, res) => {
     return;
   } else if (req.method === "POST") {
     const body = req.body;
+    const newData = {
+      ...body,
+      // createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: new Date().toISOString(),
+      createdBy: { name: profile.name, id: profile.id },
+    };
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .add({
-        ...body,
-        // createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdAt: new Date().toISOString(),
-        createdBy: profile.name,
-      })
+      .add(newData)
       .then((doc) => {
         res.statusCode = 200;
-        res.json({ message: `feed ${doc.id} Created Successfully` });
+        const feed = { ...newData, id: doc.id };
+        res.json({ message: "OK", ...feed });
       })
       .catch((err) => {
         res.statusCode = 400;

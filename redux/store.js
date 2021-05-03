@@ -3,6 +3,7 @@ import { applyMiddleware, createStore } from "redux";
 import { createWrapper } from "next-redux-wrapper";
 import { combineReducers } from "redux";
 import thunkMiddleware from "redux-thunk";
+import { userProfileReducer } from "./reducers/usertReducer";
 import { feedsReducer } from "./reducers/feeds";
 
 const bindMiddleware = (middleware) => {
@@ -13,7 +14,10 @@ const bindMiddleware = (middleware) => {
   return applyMiddleware(...middleware);
 };
 
-const allReducers = combineReducers({ feeds: feedsReducer });
+const allReducers = combineReducers({
+  userProfile: userProfileReducer,
+  feeds: feedsReducer,
+});
 
 const reducer = (state, action) => {
   if (action.type === HYDRATE) {

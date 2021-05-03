@@ -1,7 +1,7 @@
 import { verifyToken } from "../../../utils/validateToken";
 import firebase from "../../../utils/firebaseClient";
 
-export default async (req, res) => {
+const getProfile = async (req, res) => {
   if (!(req.headers && req.headers.authorization)) {
     return res.status(400).json({ error: "Missing Authorization header" });
   }
@@ -28,3 +28,5 @@ export default async (req, res) => {
     })
   );
 };
+
+export default getProfile;
