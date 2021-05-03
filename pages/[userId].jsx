@@ -119,7 +119,6 @@ function index({
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        console.log(result);
         if (result.statusText == "OK") {
           setFeeds([result.data, ...feeds]);
         }

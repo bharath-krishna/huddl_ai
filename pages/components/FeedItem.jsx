@@ -109,7 +109,6 @@ function FeedItem({ feed, userProfile, setUserProfile }) {
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        console.log(result);
         axios.get(`/api/feeds/${feed.id}/unlike`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         });
