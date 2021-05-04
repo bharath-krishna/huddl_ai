@@ -5,6 +5,7 @@ import { combineReducers } from "redux";
 import thunkMiddleware from "redux-thunk";
 import { userProfileReducer } from "./reducers/usertReducer";
 import { feedsReducer } from "./reducers/feeds";
+import { commentsReducer } from "../redux/reducers/comments";
 
 const bindMiddleware = (middleware) => {
   if (process.env.NODE_ENV !== "production") {
@@ -17,6 +18,7 @@ const bindMiddleware = (middleware) => {
 const allReducers = combineReducers({
   userProfile: userProfileReducer,
   feeds: feedsReducer,
+  comments: commentsReducer,
 });
 
 const reducer = (state, action) => {

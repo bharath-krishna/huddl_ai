@@ -34,6 +34,7 @@ import FeedItem from "../components/FeedItem";
 import { AccountCircle } from "@material-ui/icons";
 import { useForm } from "react-hook-form";
 import profile from "../api/profile";
+import { setComments } from "../../redux/actions/comments";
 
 const useStyles = makeStyles(() => ({
   container: {
@@ -61,6 +62,8 @@ function index({
   setFeeds,
   userProfile,
   setUserProfile,
+  comments,
+  setComments,
 }) {
   const classes = useStyles();
   const router = useRouter();
@@ -103,6 +106,17 @@ function index({
       })
       .catch((err) => {
         alert("Failed to fetch feeds");
+      });
+
+    axios
+      .get("/api/comments", {
+        headers: { Authorization: `Bearer ${cookie.user.token}` },
+      })
+      .then(({ data }) => {
+        setComments(data);
+      })
+      .catch((err) => {
+        alert("Failed to fetch comments");
       });
   }, []);
   const handlogout = () => {
@@ -204,7 +218,7 @@ export const getServerSideProps = async ({ req, res, query }) => {
       return {
         redirect: {
           permanent: false,
-          destination: "/",
+          destination: "/login",
         },
       };
     }
@@ -215,13 +229,18 @@ export const getServerSideProps = async ({ req, res, query }) => {
 };
 
 function mapStateToProps(state) {
-  return { feeds: state.feeds, userProfile: state.userProfile };
+  return {
+    feeds: state.feeds,
+    userProfile: state.userProfile,
+    comments: state.comments,
+  };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
     setFeeds: (feeds) => dispatch(setFeeds(feeds)),
     setUserProfile: (profile) => dispatch(setUserProfile(profile)),
+    setComments: (comments) => dispatch(setComments(comments)),
   };
 }
 

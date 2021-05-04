@@ -1,5 +1,5 @@
-import { verifyToken } from "../../../../utils/validateToken";
-import firebase from "../../../../utils/firebaseClient";
+import { verifyToken } from "../../utils/validateToken";
+import firebase from "../../utils/firebaseClient";
 
 export default async (req, res) => {
   if (!(req.headers && req.headers.authorization)) {
@@ -25,7 +25,6 @@ export default async (req, res) => {
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .where("feedId", "==", feedId)
       .get()
       .then((data) => {
         return data.docs.map((doc) => {
@@ -41,22 +40,21 @@ export default async (req, res) => {
     return;
   } else if (req.method === "POST") {
     const body = req.body;
-    const newComment = {
-      ...body,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      createdBy: {
-        name: profile.name,
-        id: profile.id,
-      },
-      feedId: feedId,
-    };
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .add(newComment)
+      .add({
+        ...body,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: {
+          name: profile.name,
+          id: profile.id,
+        },
+        feedId: feedId,
+      })
       .then((doc) => {
         res.statusCode = 200;
-        res.json({ ...newComment, id: doc.id });
+        res.json({ message: `comment ${doc.id} Created Successfully` });
       })
       .catch((err) => {
         res.statusCode = 400;
