@@ -50,7 +50,7 @@ function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
   useEffect(() => {
     let count = 0;
     userProfile.likes.map((like) => {
-      if (feed.id === like.feedId) {
+      if (feed?.id === like.feedId) {
         count++;
       }
     });
@@ -59,7 +59,7 @@ function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
 
   useEffect(() => {
     userProfile.likes.map((like) => {
-      if (like.userId === userProfile.id) {
+      if (like.userId === userProfile?.id) {
         setUserLiked(true);
       }
     });
@@ -71,13 +71,13 @@ function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
       setLikesCount(likesCount - 1);
       let likes = [];
       userProfile.likes.map((like) => {
-        if (feed.id !== like.feedId) {
+        if (feed?.id !== like.feedId) {
           likes.push(like);
         }
       });
       setUserProfile({ ...userProfile, likes: likes });
       axios
-        .get(`/api/feeds/${feed.id}/unlike`, {
+        .get(`/api/feeds/${feed?.id}/unlike`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
         .then((resp) => {})
@@ -89,10 +89,10 @@ function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
       setUserLiked(true);
       setLikesCount(likesCount + 1);
       let likes = userProfile.likes;
-      likes.push({ feedId: feed.id, userId: feed.createdBy.id });
+      likes.push({ feedId: feed?.id, userId: feed.createdBy?.id });
       setUserProfile({ ...userProfile, likes: likes });
       axios
-        .get(`/api/feeds/${feed.id}/like`, {
+        .get(`/api/feeds/${feed?.id}/like`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
         .then((resp) => {})
@@ -104,16 +104,16 @@ function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
   };
   const handleDeleteFeed = () => {
     axios
-      .delete(`/api/feeds/${feed.id}`, {
+      .delete(`/api/feeds/${feed?.id}`, {
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        axios.get(`/api/feeds/${feed.id}/unlike`, {
+        axios.get(`/api/feeds/${feed?.id}/unlike`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         });
 
         let index = feeds.findIndex(
-          (deletedFeed) => deletedFeed.id === feed.id
+          (deletedFeed) => deletedfeed?.id === feed?.id
         );
         feeds.splice(index, 1);
         setFeeds(feeds);
@@ -122,7 +122,7 @@ function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
   };
 
   // const handleComment = () => {
-  //   router.push(`/${feed.id}/comments`);
+  //   router.push(`/${feed?.id}/comments`);
   // };
   return (
     <React.Fragment>
@@ -147,7 +147,7 @@ function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
               {likesCount}
             </Typography>
           </Button>
-          <Button component={CustomLink} href={`/feeds/${feed.id}`}>
+          <Button component={CustomLink} href={`/feeds/${feed?.id}`}>
             <CommentIcon />
           </Button>
           <Button aria-label="like" onClick={handleDeleteFeed}>
