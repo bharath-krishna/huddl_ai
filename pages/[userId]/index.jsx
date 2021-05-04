@@ -20,26 +20,26 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useCookies, withCookies } from "react-cookie";
 import { connect } from "react-redux";
-import { setFeeds } from "../redux/actions/feeds";
-import { setUserProfile } from "../redux/actions/userProfileActions";
-import { getById } from "../utils/general";
-import getAbsoluteURL, { isBrowser } from "../utils/getAbsoluteURL";
-import { verifyToken } from "../utils/validateToken";
+import { setFeeds } from "../../redux/actions/feeds";
+import { setUserProfile } from "../../redux/actions/userProfileActions";
+import { getById } from "../../utils/general";
+import getAbsoluteURL, { isBrowser } from "../../utils/getAbsoluteURL";
+import { verifyToken } from "../../utils/validateToken";
 import axios from "axios";
-import CustomAppBar from "./components/CustomAppBar";
+import CustomAppBar from "../components/CustomAppBar";
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import ShareIcon from "@material-ui/icons/Share";
 import { red } from "@material-ui/core/colors";
-import FeedItem from "./components/FeedItem";
+import FeedItem from "../components/FeedItem";
 import { AccountCircle } from "@material-ui/icons";
 import { useForm } from "react-hook-form";
-import profile from "./api/profile";
+import profile from "../api/profile";
 
 const useStyles = makeStyles(() => ({
   container: {
     display: "flex",
     justifyContent: "center",
-    maxWidth: 600,
+    maxWidth: 800,
   },
   media: {
     height: 0,
@@ -123,6 +123,7 @@ function index({
           setFeeds([result.data, ...feeds]);
         }
       });
+    reset();
   };
 
   return (

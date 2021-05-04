@@ -19,11 +19,13 @@ export default async (req, res) => {
   }
 
   const collectionName = "comments";
+  const { feedId } = req.query;
   let resp = [];
   if (req.method === "GET") {
     const data = await firebase
       .firestore()
       .collection(collectionName)
+      .where("feedId", "==", feedId)
       .get()
       .then((data) => {
         return data.docs.map((doc) => {
@@ -31,7 +33,7 @@ export default async (req, res) => {
         });
       })
       .catch((err) => {
-        res.json({ message: "Something went wrong" });
+        return res.json({ message: "Something went wrong" });
       });
 
     res.statusCode = 200;
@@ -45,11 +47,12 @@ export default async (req, res) => {
       .add({
         ...body,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdBy: profile.name,
+        createdBy: profile.id,
+        feedId: feedId,
       })
       .then((doc) => {
         res.statusCode = 200;
-        res.json({ message: `feed ${doc.id} Created Successfully` });
+        res.json({ message: `comment ${doc.id} Created Successfully` });
       })
       .catch((err) => {
         res.statusCode = 400;

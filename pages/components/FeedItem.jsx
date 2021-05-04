@@ -15,38 +15,37 @@ import {
   Typography,
 } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import ShareIcon from "@material-ui/icons/Share";
 import { red } from "@material-ui/core/colors";
-import CommentIcon from "@material-ui/icons/Comment";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 import { getById } from "../../utils/general";
 import { connect } from "react-redux";
 import { setUserProfile } from "../../redux/actions/userProfileActions";
 import { setFeeds } from "../../redux/actions/feeds";
+import { useRouter } from "next/router";
+import CustomLink from "../../src/CustomLink";
+import FavoriteIcon from "@material-ui/icons/Favorite";
+import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
+import CommentIcon from "@material-ui/icons/Comment";
 import DeleteIcon from "@material-ui/icons/Delete";
 
 const useStyles = makeStyles(() => ({
   card: {
     display: "flex",
-    marginBottom: 20,
+    marginTop: 20,
   },
   image: {
     minWidth: 150,
   },
-  card: {
-    display: "flex",
-    marginBottom: 20,
-  },
 }));
 
-function FeedItem({ feed, userProfile, setUserProfile }) {
+function FeedItem({ feed, userProfile, setUserProfile, feeds, setFeeds }) {
   const classes = useStyles();
   const [likesCount, setLikesCount] = useState(0);
   const [userLiked, setUserLiked] = useState(false);
   const [cookie, removeCookie] = useCookies(["user"]);
+  const router = useRouter();
   let cretedBy;
   useEffect(() => {
     let count = 0;
@@ -112,39 +111,51 @@ function FeedItem({ feed, userProfile, setUserProfile }) {
         axios.get(`/api/feeds/${feed.id}/unlike`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         });
+
+        let index = feeds.findIndex(
+          (deletedFeed) => deletedFeed.id === feed.id
+        );
+        feeds.splice(index, 1);
+        setFeeds(feeds);
       })
       .catch((err) => {});
   };
+
+  // const handleComment = () => {
+  //   router.push(`/${feed.id}/comments`);
+  // };
   return (
-    <Card className={classes.card}>
-      <CardMedia
-        className={classes.image}
-        image="/beach.jpg"
-        title="Profile Image"
-      />
-      <CardContent className={classes.content}>
-        <Typography variant="h5">{feed?.createdBy.name}</Typography>
-        <Typography variant="body1">{feed?.message}</Typography>
-        <IconButton aria-label="like" onClick={handleLike}>
-          {userLiked ? (
-            <React.Fragment>
-              <FavoriteIcon color="secondary" />
-            </React.Fragment>
-          ) : (
-            <FavoriteBorderIcon />
-          )}
-          <Typography variant="subtitle1" color="secondary">
-            {likesCount}
-          </Typography>
-        </IconButton>
-        <IconButton aria-label="like">
-          <CommentIcon />
-        </IconButton>
-        <IconButton aria-label="like" onClick={handleDeleteFeed}>
-          <DeleteIcon />
-        </IconButton>
-      </CardContent>
-    </Card>
+    <React.Fragment>
+      <Card className={classes.card}>
+        <CardMedia
+          className={classes.image}
+          image="/beach.jpg"
+          title="Profile Image"
+        />
+        <CardContent className={classes.content}>
+          <Typography variant="h5">{feed?.createdBy.name}</Typography>
+          <Typography variant="body1">{feed?.message}</Typography>
+          <Button aria-label="like" onClick={handleLike}>
+            {userLiked ? (
+              <React.Fragment>
+                <FavoriteIcon color="secondary" />
+              </React.Fragment>
+            ) : (
+              <FavoriteBorderIcon />
+            )}
+            <Typography variant="subtitle1" color="secondary">
+              {likesCount}
+            </Typography>
+          </Button>
+          <Button component={CustomLink} href={`/feeds/${feed.id}`}>
+            <CommentIcon />
+          </Button>
+          <Button aria-label="like" onClick={handleDeleteFeed}>
+            <DeleteIcon />
+          </Button>
+        </CardContent>
+      </Card>
+    </React.Fragment>
   );
 }
 
