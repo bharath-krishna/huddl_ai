@@ -245,7 +245,7 @@ const FeedDialog = ({
       })
       .then((result) => {
         console.log(result.data);
-        setFeedComments([...feedComments, result.data]);
+        setFeedComments([result.data, ...feedComments]);
       })
       .catch((err) => {
         console.log(err);
