@@ -78,11 +78,15 @@ function FeedItem({
       }
     });
     setLikesCount(count);
-
-    count = 0;
-    setFeedComments(comments.filter((comment) => comment.feedId === feed.id));
-    setCommentsCount(feedComments.length);
   }, []);
+
+  useEffect(() => {
+    let count = 0;
+    let feedComments = comments.filter((comment) => comment.feedId === feed.id);
+    setFeedComments(feedComments);
+    setCommentsCount(feedComments.length);
+    console.log(commentsCount);
+  }, [userProfile]);
 
   useEffect(() => {
     userProfile.likes.map((like) => {
