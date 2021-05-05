@@ -69,16 +69,14 @@ export default async (req, res) => {
       .add(newComment)
       .then(async (doc) => {
         let feedProfile;
-        if (doc.exists) {
-          feedProfile = await firebase
-            .firestore()
-            .collection("profile")
-            .doc(doc.data().createdBy.id)
-            .get()
-            .then((doc) => {
-              return { ...doc.data(), id: doc.id };
-            });
-        }
+        feedProfile = await firebase
+          .firestore()
+          .collection("profile")
+          .doc(profile.id)
+          .get()
+          .then((pdoc) => {
+            return { ...pdoc.data(), id: pdoc.id };
+          });
         res.statusCode = 200;
         res.json({ ...newComment, id: doc.id, profile: feedProfile });
       })

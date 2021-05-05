@@ -1,5 +1,5 @@
-import { verifyToken } from "../../utils/validateToken";
-import firebase from "../../utils/firebaseClient";
+import { verifyToken } from "../../../utils/validateToken";
+import firebase from "../../../utils/firebaseClient";
 
 export default async (req, res) => {
   if (!(req.headers && req.headers.authorization)) {
