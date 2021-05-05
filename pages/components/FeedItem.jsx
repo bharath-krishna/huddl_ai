@@ -90,7 +90,7 @@ function FeedItem({
     let feedComments = comments.filter((comment) => comment.feedId === feed.id);
     setFeedComments(feedComments);
     setCommentsCount(feedComments.length);
-    getById("profile", feed.createdBy.id).then((profile) => {
+    getById("profile", feed?.createdBy.id).then((profile) => {
       setFeedProfile(profile);
     });
   }, [userProfile]);
@@ -127,7 +127,7 @@ function FeedItem({
       setUserLiked(true);
       setLikesCount(likesCount + 1);
       let likes = userProfile.likes;
-      likes.push({ feedId: feed?.id, userId: feed.createdBy?.id });
+      likes.push({ feedId: feed?.id, userId: feed?.createdBy?.id });
       setUserProfile({ ...userProfile, likes: likes });
       axios
         .get(`/api/feeds/${feed?.id}/like`, {
@@ -189,7 +189,7 @@ function FeedItem({
           <Button onClick={() => setDialogOpen(true)}>
             <CommentIcon /> {commentsCount}
           </Button>
-          {feed.createdBy.id === userProfile.id && (
+          {feed?.createdBy.id === userProfile.id && (
             <Button aria-label="like" onClick={handleDeleteFeed}>
               <DeleteIcon />
             </Button>
@@ -297,7 +297,7 @@ const FeedDialog = ({
               {/* <Button onClick={() => setDialogOpen(true)}>
               <CommentIcon /> {commentsCount}
             </Button> */}
-              {feed.createdBy.id === userProfile.id && (
+              {feed?.createdBy.id === userProfile.id && (
                 <Button aria-label="like" onClick={handleDeleteFeed}>
                   <DeleteIcon />
                 </Button>
@@ -400,7 +400,7 @@ const CommentList = ({
                     {likesCount}
                   </Typography>
                 </Button>
-                {feed.createdBy.id === userProfile.id && (
+                {feed?.createdBy.id === userProfile.id && (
                   <Button
                     aria-label="like"
                     onClick={() => handleDeleteComment(feed)}
