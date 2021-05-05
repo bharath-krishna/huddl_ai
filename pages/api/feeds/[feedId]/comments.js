@@ -27,10 +27,23 @@ export default async (req, res) => {
       .collection(collectionName)
       .where("feedId", "==", feedId)
       .get()
-      .then((data) => {
-        return data.docs.map((doc) => {
-          resp.push({ ...doc.data(), id: doc.id });
-        });
+      .then(async (data) => {
+        return await Promise.all(
+          data.docs.map(async (doc) => {
+            let feedProfile;
+            if (doc.exists) {
+              feedProfile = await firebase
+                .firestore()
+                .collection("profile")
+                .doc(doc.data().createdBy.id)
+                .get()
+                .then((doc) => {
+                  return { ...doc.data(), id: doc.id };
+                });
+            }
+            resp.push({ ...doc.data(), id: doc.id, profile: feedProfile });
+          })
+        );
       })
       .catch((err) => {
         return res.json({ message: "Something went wrong" });
@@ -54,9 +67,20 @@ export default async (req, res) => {
       .firestore()
       .collection(collectionName)
       .add(newComment)
-      .then((doc) => {
+      .then(async (doc) => {
+        let feedProfile;
+        if (doc.exists) {
+          feedProfile = await firebase
+            .firestore()
+            .collection("profile")
+            .doc(doc.data().createdBy.id)
+            .get()
+            .then((doc) => {
+              return { ...doc.data(), id: doc.id };
+            });
+        }
         res.statusCode = 200;
-        res.json({ ...newComment, id: doc.id });
+        res.json({ ...newComment, id: doc.id, profile: feedProfile });
       })
       .catch((err) => {
         res.statusCode = 400;

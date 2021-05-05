@@ -24,15 +24,28 @@ export default async (req, res) => {
       .firestore()
       .collection(collectionName)
       .get()
-      .then((data) => {
-        return data.docs.map((doc) => {
-          return { ...doc.data(), id: doc.id };
-        });
+      .then(async (data) => {
+        return await Promise.all(
+          data.docs.map(async (doc) => {
+            let feedProfile;
+            if (doc.exists) {
+              feedProfile = await firebase
+                .firestore()
+                .collection("profile")
+                .doc(doc.data().createdBy.id)
+                .get()
+                .then((doc) => {
+                  return { ...doc.data(), id: doc.id };
+                });
+            }
+            return { ...doc.data(), id: doc.id, profile: feedProfile };
+          })
+        );
       });
 
     res.statusCode = 200;
     let resp = [];
-    const respData = data.map((doc) => {
+    data.map((doc) => {
       if (doc.id === feedId) {
         resp.push(doc);
         return doc;

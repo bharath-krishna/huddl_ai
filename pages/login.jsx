@@ -2,8 +2,10 @@ import {
   Button,
   Container,
   FormControl,
+  Grid,
   makeStyles,
   TextField,
+  Typography,
 } from "@material-ui/core";
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
@@ -18,7 +20,7 @@ const useStyles = makeStyles(() => ({
     justifyContent: "center",
   },
   formControl: {
-    minWidth: 400,
+    minWidth: 300,
     paddingTop: "40px",
   },
 }));
@@ -43,20 +45,28 @@ function login() {
     }
   };
   return (
-    <Container className={classes.container}>
-      Login Page
-      <form onSubmit={handleSubmit(handleLogin)}>
-        <FormControl className={classes.formControl}>
-          <TextField
-            {...register("token", {
-              required: "Required",
-            })}
-            fullWidth
-          />
-          <Button type="Submit">Submit</Button>
-        </FormControl>
-      </form>
-    </Container>
+    <Grid container>
+      <Grid item sm={12} xs={12} className={classes.container}>
+        <Typography variant="h4" color="secondary">
+          Login Page
+        </Typography>
+      </Grid>
+      <Grid item sm={12} xs={12} className={classes.container}>
+        <form onSubmit={handleSubmit(handleLogin)}>
+          <FormControl className={classes.formControl}>
+            <TextField
+              label="Jwt Token"
+              {...register("token", {
+                required: "Required",
+              })}
+              fullWidth
+              multiline
+            />
+            <Button type="Submit">Login</Button>
+          </FormControl>
+        </form>
+      </Grid>
+    </Grid>
   );
 }
 

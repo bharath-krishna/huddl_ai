@@ -39,7 +39,7 @@ import CommentIcon from "@material-ui/icons/Comment";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { useForm } from "react-hook-form";
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   card: {
     display: "flex",
     marginTop: 20,
@@ -51,6 +51,10 @@ const useStyles = makeStyles(() => ({
     display: "flex",
     justifyContent: "center",
     maxWidth: 800,
+  },
+  cardAvatar: {
+    width: theme.spacing(7),
+    height: theme.spacing(7),
   },
 }));
 
@@ -69,6 +73,7 @@ function FeedItem({
   const [userLiked, setUserLiked] = useState(false);
   const [cookie, removeCookie] = useCookies(["user"]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [feedProfile, setFeedProfile] = useState({});
 
   useEffect(() => {
     let count = 0;
@@ -85,7 +90,9 @@ function FeedItem({
     let feedComments = comments.filter((comment) => comment.feedId === feed.id);
     setFeedComments(feedComments);
     setCommentsCount(feedComments.length);
-    console.log(commentsCount);
+    getById("profile", feed.createdBy.id).then((profile) => {
+      setFeedProfile(profile);
+    });
   }, [userProfile]);
 
   useEffect(() => {
@@ -161,9 +168,10 @@ function FeedItem({
       <Card className={classes.card}>
         <CardMedia
           className={classes.image}
-          image="/beach.jpg"
+          image={feedProfile.profilePic}
           title="Profile Image"
         />
+        {/* <Avatar className={classes.cardAvatar} src={userProfile.profilePic} /> */}
         <CardContent className={classes.content}>
           <Typography variant="h5">{feed?.createdBy.name}</Typography>
           <Typography variant="body1">{feed?.message}</Typography>
@@ -270,7 +278,7 @@ const FeedDialog = ({
           <Card className={classes.card}>
             <CardMedia
               className={classes.image}
-              image="/beach.jpg"
+              image={feed.profile?.profilePic}
               title="Profile Image"
             />
             <CardContent className={classes.content}>
@@ -328,7 +336,7 @@ const CommentList = ({ feedComments }) => {
             <Card className={classes.card} key={index}>
               <CardMedia
                 className={classes.image}
-                image="/beach.jpg"
+                image={feed.profile.profilePic}
                 title="Profile Image"
               />
               <CardContent className={classes.content}>

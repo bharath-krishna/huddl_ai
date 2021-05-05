@@ -35,6 +35,7 @@ import { AccountCircle } from "@material-ui/icons";
 import { useForm } from "react-hook-form";
 import profile from "../api/profile";
 import { setComments } from "../../redux/actions/comments";
+import firebase from "../../utils/firebaseClient";
 
 const useStyles = makeStyles(() => ({
   container: {
@@ -52,6 +53,14 @@ const useStyles = makeStyles(() => ({
   formControl: {
     minWidth: 400,
     paddingTop: "40px",
+  },
+  card: {
+    maxWidth: 345,
+    maxHeight: 200,
+  },
+  image: {
+    height: 0,
+    paddingTop: "56.25%", // 16:9
   },
 }));
 
@@ -140,13 +149,26 @@ function index({
     reset();
   };
 
+  const storage = firebase.storage();
+
   return (
     <React.Fragment>
       <CustomAppBar handlogout={handlogout} />
       <Container>
-        <Grid container className={classes.container}>
-          <Grid item sm={4} xs={12}>
-            profile section
+        <Grid container>
+          <Grid item sm={4} xs={12} className={classes.container}>
+            <Card className={classes.card}>
+              <CardHeader
+                title={userProfile.name}
+                subheader={`${userProfile.age} years, ${userProfile.gender}`}
+              />
+              <CardMedia
+                className={classes.image}
+                image={userProfile.profilePic}
+                title="ProfilePic"
+              />
+              <CardContent></CardContent>
+            </Card>
           </Grid>
           <Grid item sm={8} xs={12}>
             {loading ? (
