@@ -257,12 +257,9 @@ const FeedDialog = ({
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        console.log(result.data);
         setFeedComments([result.data, ...feedComments]);
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => {});
 
     reset();
   };
