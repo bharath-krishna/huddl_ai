@@ -276,7 +276,7 @@ const FeedDialog = ({
           <Card className={classes.card}>
             <CardMedia
               className={classes.image}
-              image={feed.profile?.profilePic}
+              image={feed?.profile?.profilePic}
               title="Profile Image"
             />
             <CardContent className={classes.content}>
@@ -382,7 +382,7 @@ const CommentList = ({
             <Card className={classes.card} key={index}>
               <CardMedia
                 className={classes.image}
-                image={feed.profile.profilePic}
+                image={feed?.profile.profilePic}
                 title="Profile Image"
               />
               <CardContent className={classes.content}>
