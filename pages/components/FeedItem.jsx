@@ -38,19 +38,18 @@ import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import CommentIcon from "@material-ui/icons/Comment";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { useForm } from "react-hook-form";
+import likes from "../api/feeds/[feedId]/likes";
 
 const useStyles = makeStyles((theme) => ({
   card: {
     display: "flex",
     marginTop: 20,
   },
-  image: {
-    minWidth: 150,
-  },
+  image: { height: 140, width: 100 },
   container: {
     display: "flex",
     justifyContent: "center",
-    maxWidth: 800,
+    maxWidth: 400,
   },
   cardAvatar: {
     width: theme.spacing(7),
@@ -67,96 +66,108 @@ function FeedItem({
   comments,
 }) {
   const classes = useStyles();
-  const [likesCount, setLikesCount] = useState(0);
+  const [likesCount, setLikesCount] = useState(feed.likes.length);
   const [commentsCount, setCommentsCount] = useState(0);
   const [feedComments, setFeedComments] = useState([]);
-  const [userLiked, setUserLiked] = useState(false);
+  let [userLiked, setUserLiked] = useState(false);
   const [cookie, removeCookie] = useCookies(["user"]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [feedProfile, setFeedProfile] = useState({});
 
   useEffect(() => {
-    let count = 0;
-    userProfile.likes.map((like) => {
-      if (feed?.id === like.feedId) {
-        count++;
-      }
-    });
-    setLikesCount(count);
-  }, []);
-
-  useEffect(() => {
-    let count = 0;
-    let feedComments = comments.filter((comment) => comment.feedId === feed.id);
-    setFeedComments(feedComments);
-    setCommentsCount(feedComments.length);
-    getById("profile", feed?.createdBy.id).then((profile) => {
-      setFeedProfile(profile);
-    });
+    setUserLiked(feed.likes.includes(userProfile.id));
   }, [userProfile]);
 
   useEffect(() => {
-    userProfile.likes.map((like) => {
-      if (like.userId === userProfile?.id) {
-        setUserLiked(true);
-      }
-    });
-  }, [userProfile]);
-
-  const handleLike = () => {
-    if (userLiked) {
-      setUserLiked(false);
-      setLikesCount(likesCount - 1);
-      let likes = [];
-      userProfile.likes.map((like) => {
-        if (feed?.id !== like.feedId) {
-          likes.push(like);
+    setLikesCount(
+      feeds.map((curFeed) => {
+        if (curFeed.id == feed.id) {
+          return curFeed.likes.length;
         }
-      });
-      setUserProfile({ ...userProfile, likes: likes });
+      })
+    );
+  }, [feeds]);
+
+  const handleUserLike = (like) => {
+    if (like) {
       axios
-        .get(`/api/feeds/${feed?.id}/unlike`, {
+        .get(`/api/feeds/${feed.id}/like`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
-        .then((resp) => {})
-        .then((result) => {})
-        .catch((err) => {
-          alert("Something went wrong");
-        });
+        .then((result) => {
+          if (result.statusText == "OK") {
+            setUserLiked(true);
+            let newFeeds = feeds.map((curFeed) => {
+              if (curFeed.id == feed.id) {
+                setLikesCount(curFeed.likes.length + 1);
+                return {
+                  ...curFeed,
+                  likes: [...curFeed.likes, userProfile.id],
+                };
+              } else {
+                return curFeed;
+              }
+            });
+            setFeeds(newFeeds);
+            feed = { ...feed, likes: [...feed.likes, userProfile.id] };
+          }
+        })
+        .catch((err) => {});
     } else {
-      setUserLiked(true);
-      setLikesCount(likesCount + 1);
-      let likes = userProfile.likes;
-      likes.push({ feedId: feed?.id, userId: feed?.createdBy?.id });
-      setUserProfile({ ...userProfile, likes: likes });
       axios
-        .get(`/api/feeds/${feed?.id}/like`, {
+        .get(`/api/feeds/${feed.id}/unlike`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
-        .then((resp) => {})
-        .then((result) => {})
-        .catch((err) => {
-          alert("Something went wrong");
+        .then((result) => {
+          if (result.statusText == "OK") {
+            setUserLiked(like);
+            let newFeeds = feeds.map((curFeed) => {
+              if (curFeed.id == feed.id) {
+                let likes = curFeed.likes;
+                let index = likes.findIndex((id) => id == userProfile.id);
+                likes.splice(index, 1);
+                setLikesCount(likes.length);
+                return { ...curFeed, likes: likes };
+              } else {
+                return curFeed;
+              }
+            });
+            setFeeds(newFeeds);
+          }
         });
     }
   };
+
   const handleDeleteFeed = () => {
+    let index = feeds.findIndex((curFeed) => curFeed.id == feed?.id);
+    let curFeed = feeds[index];
+    feeds.splice(index, 1);
+    setFeeds(feeds);
     axios
-      .delete(`/api/feeds/${feed?.id}`, {
+      .delete(`/api/feeds/${curFeed?.id}`, {
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        axios.get(`/api/feeds/${feed?.id}/unlike`, {
-          headers: { Authorization: `Bearer ${cookie.user.token}` },
-        });
+        if (result.statusText == "OK") {
+          // Delete Comments
+          feed.comments.map((comment) => {
+            axios.delete(`/api/comments/${comment.id}`, {
+              headers: { Authorization: `Bearer ${cookie.user.token}` },
+            });
+          });
+          // Delete Likes
+          axios.get(`/api/feeds/${feed?.id}/unlike`, {
+            headers: { Authorization: `Bearer ${cookie.user.token}` },
+          });
 
-        let index = feeds.findIndex(
-          (deletedFeed) => deletedfeed?.id === feed?.id
-        );
-        feeds.splice(index, 1);
-        setFeeds(feeds);
+          // let index = feeds.findIndex((curFeed) => curFeed.id == feed?.id);
+        } else {
+          console.log(result.data);
+        }
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleDialogClose = () => {
@@ -167,20 +178,24 @@ function FeedItem({
     <React.Fragment>
       <Card className={classes.card}>
         <CardMedia
+          component="img"
           className={classes.image}
-          image={feedProfile.profilePic}
-          title="Profile Image"
+          image={userProfile.profilePic}
+          height="100"
+          title="ProfilePic"
+          alt="pic"
         />
         <CardContent className={classes.content}>
           <Typography variant="h5">{feed?.createdBy.name}</Typography>
           <Typography variant="body1">{feed?.message}</Typography>
-          <Button aria-label="like" onClick={handleLike}>
+          <Button aria-label="like">
             {userLiked ? (
-              <React.Fragment>
-                <FavoriteIcon color="secondary" />
-              </React.Fragment>
+              <FavoriteIcon
+                color="secondary"
+                onClick={() => handleUserLike(false)}
+              />
             ) : (
-              <FavoriteBorderIcon />
+              <FavoriteBorderIcon onClick={() => handleUserLike(true)} />
             )}
             <Typography variant="subtitle1" color="secondary">
               {likesCount}
@@ -190,7 +205,7 @@ function FeedItem({
             <CommentIcon /> {commentsCount}
           </Button>
           {feed?.createdBy.id === userProfile.id && (
-            <Button aria-label="like" onClick={handleDeleteFeed}>
+            <Button aria-label="like" onClick={() => handleDeleteFeed()}>
               <DeleteIcon />
             </Button>
           )}
@@ -201,7 +216,7 @@ function FeedItem({
         onClose={handleDialogClose}
         feed={feed}
         feedComments={feedComments}
-        handleLike={handleLike}
+        handleUserLike={handleUserLike}
         userLiked={userLiked}
         likesCount={likesCount}
         commentsCount={commentsCount}
@@ -238,7 +253,7 @@ const FeedDialog = ({
   feed,
   feedComments,
   setFeedComments,
-  handleLike,
+  handleUserLike,
   userLiked,
   likesCount,
   commentsCount,
@@ -269,26 +284,31 @@ const FeedDialog = ({
         onClose={onClose}
         aria-labelledby="simple-dialog-title"
         open={open}
-        // className={classes.container}
       >
         <DialogTitle id="simple-dialog-title">Messages</DialogTitle>
         <DialogContent>
           <Card className={classes.card}>
             <CardMedia
+              component="img"
               className={classes.image}
-              image={feed?.profile?.profilePic}
-              title="Profile Image"
+              image={userProfile.profilePic}
+              height="100"
+              title="ProfilePic"
+              alt="pic"
             />
             <CardContent className={classes.content}>
               <Typography variant="h5">{feed?.createdBy.name}</Typography>
               <Typography variant="body1">{feed?.message}</Typography>
-              <Button aria-label="like" onClick={handleLike}>
+              <Button aria-label="like">
                 {userLiked ? (
                   <React.Fragment>
-                    <FavoriteIcon color="secondary" />
+                    <FavoriteIcon
+                      color="secondary"
+                      onClick={() => handleUserLike(true)}
+                    />
                   </React.Fragment>
                 ) : (
-                  <FavoriteBorderIcon />
+                  <FavoriteBorderIcon onClick={() => handleUserLike(false)} />
                 )}
                 <Typography variant="subtitle1" color="secondary">
                   {likesCount}
@@ -322,8 +342,7 @@ const FeedDialog = ({
           <CommentList
             feedComments={feedComments}
             userProfile={userProfile}
-            handleLike={handleLike}
-            handleDeleteFeed={handleDeleteFeed}
+            handleUserLike={handleUserLike}
             userLiked={userLiked}
             likesCount={likesCount}
             setFeedComments={setFeedComments}
@@ -337,7 +356,7 @@ const FeedDialog = ({
 const CommentList = ({
   feedComments,
   userProfile,
-  handleLike,
+  handleUserLike,
   userLiked,
   likesCount,
   setFeedComments,
@@ -358,17 +377,15 @@ const CommentList = ({
         }
       });
     // axios
-    // .delete(`/api/feeds/${feed?.id}`, {
-    //   headers: { Authorization: `Bearer ${cookie.user.token}` },
-    // })
+    //   .delete(`/api/feeds/${feed?.id}`, {
+    //     headers: { Authorization: `Bearer ${cookie.user.token}` },
+    //   })
     //   .then((result) => {
     //     axios.get(`/api/feeds/${feed?.id}/unlike`, {
     //       headers: { Authorization: `Bearer ${cookie.user.token}` },
     //     });
 
-    //     let index = feeds.findIndex(
-    //       (deletedFeed) => deletedfeed?.id === feed?.id
-    //     );
+    //     let index = feeds.findIndex((curFeed) => curFeed?.id === feed?.id);
     //     feeds.splice(index, 1);
     //     setFeeds(feeds);
     //   })
@@ -381,20 +398,26 @@ const CommentList = ({
           return (
             <Card className={classes.card} key={index}>
               <CardMedia
+                component="img"
                 className={classes.image}
-                image={feed?.profile.profilePic}
-                title="Profile Image"
+                image={userProfile.profilePic}
+                height="100"
+                title="ProfilePic"
+                alt="pic"
               />
               <CardContent className={classes.content}>
                 <Typography variant="h5">{feed?.createdBy.name}</Typography>
                 <Typography variant="body1">{feed?.message}</Typography>
-                <Button aria-label="like" onClick={handleLike}>
+                <Button aria-label="like">
                   {userLiked ? (
                     <React.Fragment>
-                      <FavoriteIcon color="secondary" />
+                      <FavoriteIcon
+                        color="secondary"
+                        onClick={() => handleUserLike(true)}
+                      />
                     </React.Fragment>
                   ) : (
-                    <FavoriteBorderIcon />
+                    <FavoriteBorderIcon onClick={() => handleUserLike(false)} />
                   )}
                   <Typography variant="subtitle1" color="secondary">
                     {likesCount}
