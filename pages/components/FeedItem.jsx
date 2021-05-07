@@ -176,7 +176,7 @@ function FeedItem({
         <CardMedia
           component="img"
           className={classes.image}
-          image={feed.profile.profilePic}
+          image={feed?.profile.profilePic}
           height="100"
           title="ProfilePic"
           alt="pic"
