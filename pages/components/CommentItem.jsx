@@ -103,7 +103,7 @@ function CommentItem({ userProfile, comment, feed, feeds, setFeeds }) {
         <CardMedia
           component="img"
           className={classes.image}
-          image={comment.profile.profilePic}
+          image={comment?.profile.profilePic}
           height="100"
           title="ProfilePic"
           alt="pic"
