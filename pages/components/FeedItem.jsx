@@ -39,6 +39,7 @@ import CommentIcon from "@material-ui/icons/Comment";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { useForm } from "react-hook-form";
 import likes from "../api/feeds/[feedId]/likes";
+import FeedDialog from "./FeedDialog";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -67,8 +68,8 @@ function FeedItem({
 }) {
   const classes = useStyles();
   const [likesCount, setLikesCount] = useState(feed?.likes.length);
-  const [commentsCount, setCommentsCount] = useState(0);
-  const [feedComments, setFeedComments] = useState([]);
+  const [commentsCount, setCommentsCount] = useState(feed?.comments.length);
+  const [feedComments, setFeedComments] = useState(feed?.comments);
   let [userLiked, setUserLiked] = useState(false);
   const [cookie, removeCookie] = useCookies(["user"]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -79,13 +80,13 @@ function FeedItem({
   }, [userProfile]);
 
   useEffect(() => {
-    setLikesCount(
-      feeds.map((curFeed) => {
-        if (curFeed.id == feed.id) {
-          return curFeed?.likes.length;
-        }
-      })
-    );
+    feeds.map((curFeed) => {
+      if (curFeed.id == feed.id) {
+        setLikesCount(curFeed?.likes.length);
+        setFeedComments(curFeed?.comments);
+        setCommentsCount(curFeed?.comments.length);
+      }
+    });
   }, [feeds]);
 
   const handleUserLike = (like) => {
@@ -160,12 +161,9 @@ function FeedItem({
           feeds.splice(index, 1);
           setFeeds([...feeds]);
         } else {
-          console.log(result.data);
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => {});
   };
 
   const handleDialogClose = () => {
@@ -219,7 +217,7 @@ function FeedItem({
         likesCount={likesCount}
         commentsCount={commentsCount}
         handleDeleteFeed={handleDeleteFeed}
-        userProfile={userProfile}
+        // userProfile={userProfile}
         setFeedComments={setFeedComments}
       />
     </React.Fragment>
@@ -242,198 +240,3 @@ function mapDispatchToProps(dispatch) {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(FeedItem);
-
-// export default FeedItem;
-
-const FeedDialog = ({
-  onClose,
-  open,
-  feed,
-  feedComments,
-  setFeedComments,
-  handleUserLike,
-  userLiked,
-  likesCount,
-  commentsCount,
-  handleDeleteFeed,
-  userProfile,
-}) => {
-  const classes = useStyles();
-  const { register, handleSubmit, control, reset } = useForm();
-  const [cookie, removeCookie] = useCookies(["user"]);
-  const onComment = (data) => {
-    const body = {
-      message: data.comment,
-    };
-    axios
-      .post(`/api/feeds/${feed.id}/comments`, body, {
-        headers: { Authorization: `Bearer ${cookie.user.token}` },
-      })
-      .then((result) => {
-        setFeedComments([result.data, ...feedComments]);
-      })
-      .catch((err) => {});
-
-    reset();
-  };
-  return (
-    <Container className={classes.container}>
-      <Dialog
-        onClose={onClose}
-        aria-labelledby="simple-dialog-title"
-        open={open}
-      >
-        <DialogTitle id="simple-dialog-title">Messages</DialogTitle>
-        <DialogContent>
-          <Card className={classes.card}>
-            <CardMedia
-              component="img"
-              className={classes.image}
-              image={userProfile.profilePic}
-              height="100"
-              title="ProfilePic"
-              alt="pic"
-            />
-            <CardContent className={classes.content}>
-              <Typography variant="h5">{feed?.createdBy.name}</Typography>
-              <Typography variant="body1">{feed?.message}</Typography>
-              <Button aria-label="like">
-                {userLiked ? (
-                  <React.Fragment>
-                    <FavoriteIcon
-                      color="secondary"
-                      onClick={() => handleUserLike(true)}
-                    />
-                  </React.Fragment>
-                ) : (
-                  <FavoriteBorderIcon onClick={() => handleUserLike(false)} />
-                )}
-                <Typography variant="subtitle1" color="secondary">
-                  {likesCount}
-                </Typography>
-              </Button>
-              {/* <Button onClick={() => setDialogOpen(true)}>
-              <CommentIcon /> {commentsCount}
-            </Button> */}
-              {feed?.createdBy.id === userProfile.id && (
-                <Button aria-label="like" onClick={handleDeleteFeed}>
-                  <DeleteIcon />
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-          <br />
-          <form onSubmit={handleSubmit(onComment)}>
-            <TextField
-              label="Enter comment"
-              {...register("comment", {
-                required: "Required",
-              })}
-              rows={2}
-              fullWidth
-              multiline
-            />
-            <Button type="submit" variant="contained" color="primary">
-              Send
-            </Button>
-          </form>
-          <CommentList
-            feedComments={feedComments}
-            userProfile={userProfile}
-            handleUserLike={handleUserLike}
-            userLiked={userLiked}
-            likesCount={likesCount}
-            setFeedComments={setFeedComments}
-          />
-        </DialogContent>
-      </Dialog>
-    </Container>
-  );
-};
-
-const CommentList = ({
-  feedComments,
-  userProfile,
-  handleUserLike,
-  userLiked,
-  likesCount,
-  setFeedComments,
-}) => {
-  const classes = useStyles();
-  const [cookie, removeCookie] = useCookies(["user"]);
-  const handleDeleteComment = (comment) => {
-    axios
-      .delete(`api/comments/${comment.id}`, {
-        headers: { Authorization: `Bearer ${cookie.user.token}` },
-      })
-      .then((result) => {
-        if (result.statusText == "OK") {
-          let afterDelete = feedComments.filter(
-            (feedComment) => feedComment.id !== comment.id
-          );
-          setFeedComments(afterDelete);
-        }
-      });
-    // axios
-    //   .delete(`/api/feeds/${feed?.id}`, {
-    //     headers: { Authorization: `Bearer ${cookie.user.token}` },
-    //   })
-    //   .then((result) => {
-    //     axios.get(`/api/feeds/${feed?.id}/unlike`, {
-    //       headers: { Authorization: `Bearer ${cookie.user.token}` },
-    //     });
-
-    //     let index = feeds.findIndex((curFeed) => curFeed?.id === feed?.id);
-    //     feeds.splice(index, 1);
-    //     setFeeds(feeds);
-    //   })
-    //   .catch((err) => {});
-  };
-  return (
-    <React.Fragment>
-      <List>
-        {feedComments.map((feed, index) => {
-          return (
-            <Card className={classes.card} key={index}>
-              <CardMedia
-                component="img"
-                className={classes.image}
-                image={userProfile.profilePic}
-                height="100"
-                title="ProfilePic"
-                alt="pic"
-              />
-              <CardContent className={classes.content}>
-                <Typography variant="h5">{feed?.createdBy.name}</Typography>
-                <Typography variant="body1">{feed?.message}</Typography>
-                <Button aria-label="like">
-                  {userLiked ? (
-                    <React.Fragment>
-                      <FavoriteIcon
-                        color="secondary"
-                        onClick={() => handleUserLike(true)}
-                      />
-                    </React.Fragment>
-                  ) : (
-                    <FavoriteBorderIcon onClick={() => handleUserLike(false)} />
-                  )}
-                  <Typography variant="subtitle1" color="secondary">
-                    {likesCount}
-                  </Typography>
-                </Button>
-                {feed?.createdBy.id === userProfile.id && (
-                  <Button
-                    aria-label="like"
-                    onClick={() => handleDeleteComment(feed)}
-                  >
-                    <DeleteIcon />
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </List>
-    </React.Fragment>
-  );
-};

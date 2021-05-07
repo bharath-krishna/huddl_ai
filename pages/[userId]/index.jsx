@@ -106,12 +106,9 @@ function index({
             ...feeds,
           ];
         } else {
-          console.log(result.data);
         }
       })
-      .catch((err) => {
-        console.log(err);
-      })
+      .catch((err) => {})
       .then((feeds) => {
         setFeeds([...feeds]);
       });
@@ -200,7 +197,7 @@ export const getServerSideProps = async ({ req, res, query }) => {
           },
         };
       } else {
-        let url = getAbsoluteURL(`/api/profile/${userId}/feeds`, req);
+        let url = getAbsoluteURL(`/api/feeds`, req);
         const feeds = await axios
           .get(url, {
             headers: { Authorization: `Bearer ${token}` },

@@ -26,6 +26,7 @@ export default async (req, res) => {
       .firestore()
       .collection(collectionName)
       .where("feedId", "==", feedId)
+      .orderBy("createdAt", "desc")
       .get()
       .then(async (data) => {
         return await Promise.all(
@@ -46,6 +47,7 @@ export default async (req, res) => {
         );
       })
       .catch((err) => {
+        console.log(err);
         return res.json({ message: "Something went wrong" });
       });
 

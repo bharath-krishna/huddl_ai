@@ -1,5 +1,7 @@
 import { verifyToken } from "../../../utils/validateToken";
 import firebase from "../../../utils/firebaseClient";
+import getAbsoluteURL from "../../../utils/getAbsoluteURL";
+import axios from "axios";
 
 export default async (req, res) => {
   if (!(req.headers && req.headers.authorization)) {
@@ -28,29 +30,57 @@ export default async (req, res) => {
       .get()
       .then(async (data) => {
         return await Promise.all(
-          data.docs.map(async (doc) => {
+          data.docs.map(async (feedDoc) => {
+            let comments = [];
+            let likes = [];
             let feedProfile;
-            if (doc.exists) {
-              feedProfile = await firebase
-                .firestore()
-                .collection("profile")
-                .doc(doc.data().createdBy.id)
-                .get()
-                .then((doc) => {
-                  return { ...doc.data(), id: doc.id };
-                });
+            if (feedDoc.exists) {
+              let url = getAbsoluteURL(`/api/feeds/${feedDoc.id}/likes`, req);
+              await axios
+                .get(url, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                .then((result) => {
+                  result.data.map((like) => {
+                    likes.push(like.userId);
+                  });
+                })
+                .catch((err) => {});
+
+              url = getAbsoluteURL(`/api/feeds/${feedDoc.id}/comments`, req);
+              await axios
+                .get(url, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                .then((result) => {
+                  comments = result.data;
+                })
+                .catch((err) => {});
+
+              url = getAbsoluteURL(`/api/profile/${profile.id}`, req);
+              await axios
+                .get(url, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                .then((result) => {
+                  feedProfile = result.data;
+                })
+                .catch((err) => {});
             }
-            resp.push({ ...doc.data(), id: doc.id, profile: feedProfile });
+            return {
+              ...feedDoc.data(),
+              id: feedDoc.id,
+              likes: likes,
+              comments: comments,
+              profile: feedProfile,
+            };
           })
         );
       })
       .catch((err) => {
-        res.json({ message: "Something went wrong" });
+        return res.json({ message: "Something went wrong" });
       });
-
-    res.statusCode = 200;
-    res.json(resp);
-    return;
+    return res.status(200).json(data);
   } else if (req.method === "POST") {
     const body = req.body;
     const newData = {
