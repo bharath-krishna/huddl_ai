@@ -44,10 +44,10 @@ export default async (req, res) => {
               return res.status(400).json({ err: "Something went wrong" });
             });
         });
-        res.json();
       })
       .catch((err) => {
         return res.status(400).json({ err: "Something Went Wrong" });
       });
   }
+  res.status(405).json({ err: "Method Not Allowed" });
 };
