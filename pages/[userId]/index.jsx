@@ -60,6 +60,7 @@ const useStyles = makeStyles(() => ({
 function index({
   cookies,
   allCookies,
+  serverFeeds,
   feeds,
   setFeeds,
   userProfile,
@@ -82,33 +83,8 @@ function index({
     } else {
       setUnauthorized(true);
     }
-
-    // axios
-    //   .get(`/api/profile/${userId}/likes`, {
-    //     headers: { Authorization: `Bearer ${cookie.user.token}` },
-    //   })
-    //   .then(({ data }) => {
-    //     if (data) {
-    //       setUserProfile({ ...userProfile, likes: data });
-    //       setLoading(false);
-    //     }
-    //   })
-    //   .catch((err) => {
-    //     alert("Failed to fetch feeds");
-    //   });
-
-    setFeeds(feeds);
-
-    // axios
-    //   .get("/api/comments", {
-    //     headers: { Authorization: `Bearer ${cookie.user.token}` },
-    //   })
-    //   .then(({ data }) => {
-    //     setComments(data);
-    //   })
-    //   .catch((err) => {
-    //     alert("Failed to fetch comments");
-    //   });
+    // Set feeds props received from server
+    setFeeds([...serverFeeds]);
   }, []);
   const handlogout = () => {
     removeCookie("user");
@@ -125,13 +101,19 @@ function index({
       })
       .then((result) => {
         if (result.statusText == "OK") {
-          setFeeds([result.data, ...feeds]);
+          return [
+            { ...result.data, likes: [], comments: [], profile: userProfile },
+            ...feeds,
+          ];
         } else {
           console.log(result.data);
         }
       })
       .catch((err) => {
         console.log(err);
+      })
+      .then((feeds) => {
+        setFeeds([...feeds]);
       });
     reset();
   };
@@ -239,7 +221,7 @@ export const getServerSideProps = async ({ req, res, query }) => {
           .catch((err) => {});
 
         return {
-          props: { feeds: feeds, userProfile },
+          props: { serverFeeds: feeds, userProfile },
         };
       }
     } else {
@@ -258,6 +240,7 @@ export const getServerSideProps = async ({ req, res, query }) => {
 
 function mapStateToProps(state) {
   return {
+    feeds: state.feeds,
     comments: state.comments,
   };
 }

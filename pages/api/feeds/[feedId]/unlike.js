@@ -32,22 +32,22 @@ export default async (req, res) => {
       .get()
       .then((result) => {
         result.docs.map((doc) => {
-          const data = firebase
+          firebase
             .firestore()
             .collection(collectionName)
             .doc(doc.id)
             .delete()
             .then(() => {
-              return res.status(200).json({ message: "Unliked" });
+              return { message: "Unliked" };
             })
             .catch((err) => {
-              return res.status(400).json({ err: "Something went wrong" });
+              return { err: "Unlike went wrong" };
             });
         });
+        res.json({ message: "Unliked" });
       })
       .catch((err) => {
         return res.status(400).json({ err: "Something Went Wrong" });
       });
   }
-  res.status(405).json({ err: "Method Not Allowed" });
 };

@@ -108,7 +108,7 @@ function FeedItem({
                 return curFeed;
               }
             });
-            setFeeds(newFeeds);
+            setFeeds([...newFeeds]);
             feed = { ...feed, likes: [...feed.likes, userProfile.id] };
           }
         })
@@ -132,19 +132,15 @@ function FeedItem({
                 return curFeed;
               }
             });
-            setFeeds(newFeeds);
+            setFeeds([...newFeeds]);
           }
         });
     }
   };
 
   const handleDeleteFeed = () => {
-    let index = feeds.findIndex((curFeed) => curFeed.id == feed?.id);
-    let curFeed = feeds[index];
-    feeds.splice(index, 1);
-    setFeeds(feeds);
     axios
-      .delete(`/api/feeds/${curFeed?.id}`, {
+      .delete(`/api/feeds/${feed?.id}`, {
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
@@ -160,7 +156,9 @@ function FeedItem({
             headers: { Authorization: `Bearer ${cookie.user.token}` },
           });
 
-          // let index = feeds.findIndex((curFeed) => curFeed.id == feed?.id);
+          let index = feeds.findIndex((curFeed) => curFeed.id == feed?.id);
+          feeds.splice(index, 1);
+          setFeeds([...feeds]);
         } else {
           console.log(result.data);
         }
