@@ -45,6 +45,9 @@ export default async (req, res) => {
             });
         });
         res.json();
+      })
+      .catch((err) => {
+        return res.status(400).json({ err: "Something Went Wrong" });
       });
   }
 };
