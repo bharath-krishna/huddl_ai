@@ -173,7 +173,6 @@ function FeedItem({
   return (
     <React.Fragment>
       <Card className={classes.card}>
-        {console.log(feed.profile.profilePic)}
         <CardMedia
           component="img"
           className={classes.image}
