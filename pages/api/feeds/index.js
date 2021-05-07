@@ -57,7 +57,10 @@ export default async (req, res) => {
                 })
                 .catch((err) => {});
 
-              url = getAbsoluteURL(`/api/profile/${profile.id}`, req);
+              url = getAbsoluteURL(
+                `/api/profile/${feedDoc.data().createdBy.id}`,
+                req
+              );
               await axios
                 .get(url, {
                   headers: { Authorization: `Bearer ${token}` },
