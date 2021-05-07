@@ -66,7 +66,7 @@ function FeedItem({
   comments,
 }) {
   const classes = useStyles();
-  const [likesCount, setLikesCount] = useState(feed.likes.length);
+  const [likesCount, setLikesCount] = useState(feed?.likes.length);
   const [commentsCount, setCommentsCount] = useState(0);
   const [feedComments, setFeedComments] = useState([]);
   let [userLiked, setUserLiked] = useState(false);
@@ -75,14 +75,14 @@ function FeedItem({
   const [feedProfile, setFeedProfile] = useState({});
 
   useEffect(() => {
-    setUserLiked(feed.likes.includes(userProfile.id));
+    setUserLiked(feed?.likes.includes(userProfile.id));
   }, [userProfile]);
 
   useEffect(() => {
     setLikesCount(
       feeds.map((curFeed) => {
         if (curFeed.id == feed.id) {
-          return curFeed.likes.length;
+          return curFeed?.likes.length;
         }
       })
     );
@@ -99,17 +99,17 @@ function FeedItem({
             setUserLiked(true);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
-                setLikesCount(curFeed.likes.length + 1);
+                setLikesCount(curFeed?.likes.length + 1);
                 return {
                   ...curFeed,
-                  likes: [...curFeed.likes, userProfile.id],
+                  likes: [...curFeed?.likes, userProfile.id],
                 };
               } else {
                 return curFeed;
               }
             });
             setFeeds([...newFeeds]);
-            feed = { ...feed, likes: [...feed.likes, userProfile.id] };
+            feed = { ...feed, likes: [...feed?.likes, userProfile.id] };
           }
         })
         .catch((err) => {});
@@ -123,7 +123,7 @@ function FeedItem({
             setUserLiked(like);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
-                let likes = curFeed.likes;
+                let likes = curFeed?.likes;
                 let index = likes.findIndex((id) => id == userProfile.id);
                 likes.splice(index, 1);
                 setLikesCount(likes.length);
