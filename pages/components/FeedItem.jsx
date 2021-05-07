@@ -147,7 +147,7 @@ function FeedItem({
       .then((result) => {
         if (result.statusText == "OK") {
           // Delete Comments
-          feed.comments.map((comment) => {
+          feed?.comments.map((comment) => {
             axios.delete(`/api/comments/${comment.id}`, {
               headers: { Authorization: `Bearer ${cookie.user.token}` },
             });
