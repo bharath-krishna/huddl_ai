@@ -116,7 +116,7 @@ const FeedDialog = ({
             <CardMedia
               component="img"
               className={classes.image}
-              image={userProfile.profilePic}
+              image={feed?.profile.profilePic}
               height="100"
               title="ProfilePic"
               alt="pic"
