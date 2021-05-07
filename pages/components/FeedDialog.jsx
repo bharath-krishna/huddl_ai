@@ -75,7 +75,7 @@ const FeedDialog = ({
 }) => {
   const classes = useStyles();
   const { register, handleSubmit, control, reset } = useForm();
-  const [comments, setComments] = useState(feed.comments);
+  const [comments, setComments] = useState(feed?.comments);
   const [cookie, removeCookie] = useCookies(["user"]);
   const onComment = (data) => {
     const body = {
@@ -88,7 +88,10 @@ const FeedDialog = ({
       .then((result) => {
         let newFeeds = feeds.map((curFeed) => {
           if (curFeed.id == feed.id) {
-            return { ...curFeed, comments: [result.data, ...curFeed.comments] };
+            return {
+              ...curFeed,
+              comments: [result.data, ...curFeed?.comments],
+            };
           } else {
             return curFeed;
           }
@@ -158,7 +161,7 @@ const FeedDialog = ({
               Send
             </Button>
           </form>
-          {feed.comments.map((comment, index) => {
+          {feed?.comments.map((comment, index) => {
             return <CommentItem key={index} comment={comment} feed={feed} />;
           })}
         </DialogContent>
