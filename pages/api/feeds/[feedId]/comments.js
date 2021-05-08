@@ -26,6 +26,7 @@ export default async (req, res) => {
       .firestore()
       .collection(collectionName)
       .where("feedId", "==", feedId)
+      .orderBy("createdAt", "desc")
       .get()
       .then(async (data) => {
         return await Promise.all(

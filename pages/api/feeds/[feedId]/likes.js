@@ -1,7 +1,7 @@
 import { verifyToken } from "../../../../utils/validateToken";
 import firebase from "../../../../utils/firebaseClient";
 
-export default async (req, res) => {
+const getFeedLikes = async (req, res) => {
   if (!(req.headers && req.headers.authorization)) {
     return res.status(400).json({ error: "Missing Authorization header" });
   }
@@ -23,31 +23,23 @@ export default async (req, res) => {
   const collectionName = "likes";
   let resp = [];
   if (req.method === "GET") {
-    const body = { feedId, userId: profile.id };
     const data = await firebase
       .firestore()
       .collection(collectionName)
-      .where("userId", "==", profile.id)
       .where("feedId", "==", feedId)
       .get()
-      .then((result) => {
-        result.docs.map((doc) => {
-          firebase
-            .firestore()
-            .collection(collectionName)
-            .doc(doc.id)
-            .delete()
-            .then(() => {
-              return { message: "Unliked" };
-            })
-            .catch((err) => {
-              return { err: "Unlike went wrong" };
-            });
+      .then((data) => {
+        res.status(200);
+        data.docs.map((doc) => {
+          resp.push({ ...doc.data(), id: doc.id });
         });
-        res.json({ message: "Unliked" });
       })
       .catch((err) => {
-        return res.status(400).json({ err: "Something Went Wrong" });
+        res.status(400);
+        resp.push({ error: "Something went wrong" });
       });
   }
+  res.json(resp);
 };
+
+export default getFeedLikes;

@@ -43,10 +43,6 @@ const useStyles = makeStyles(() => ({
     justifyContent: "center",
     maxWidth: 800,
   },
-  media: {
-    height: 0,
-    paddingTop: "56.25%", // 16:9
-  },
   avatar: {
     backgroundColor: red[500],
   },
@@ -58,15 +54,13 @@ const useStyles = makeStyles(() => ({
     maxWidth: 345,
     maxHeight: 200,
   },
-  image: {
-    height: 0,
-    paddingTop: "56.25%", // 16:9
-  },
+  image: { height: 200, width: 200 },
 }));
 
 function index({
   cookies,
   allCookies,
+  serverFeeds,
   feeds,
   setFeeds,
   userProfile,
@@ -83,50 +77,14 @@ function index({
   const { register, handleSubmit, control, reset } = useForm();
 
   useEffect(() => {
-    getById("profile", userId).then((profile) => {
-      if (profile) {
-        setUserProfile({ ...profile, id: userId });
-        setLoading(false);
-      } else {
-        setUnauthorized(true);
-      }
-    });
-
-    axios
-      .get(`/api/profile/${userId}/likes`, {
-        headers: { Authorization: `Bearer ${cookie.user.token}` },
-      })
-      .then(({ data }) => {
-        if (data) {
-          setUserProfile({ ...userProfile, likes: data });
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        alert("Failed to fetch feeds");
-      });
-
-    axios
-      .get("/api/feeds", {
-        headers: { Authorization: `Bearer ${cookie.user.token}` },
-      })
-      .then(({ data }) => {
-        setFeeds(data);
-      })
-      .catch((err) => {
-        alert("Failed to fetch feeds");
-      });
-
-    axios
-      .get("/api/comments", {
-        headers: { Authorization: `Bearer ${cookie.user.token}` },
-      })
-      .then(({ data }) => {
-        setComments(data);
-      })
-      .catch((err) => {
-        alert("Failed to fetch comments");
-      });
+    if (userProfile) {
+      setUserProfile(userProfile);
+      setLoading(false);
+    } else {
+      setUnauthorized(true);
+    }
+    // Set feeds props received from server
+    setFeeds([...serverFeeds]);
   }, []);
   const handlogout = () => {
     removeCookie("user");
@@ -143,8 +101,16 @@ function index({
       })
       .then((result) => {
         if (result.statusText == "OK") {
-          setFeeds([result.data, ...feeds]);
+          return [
+            { ...result.data, likes: [], comments: [], profile: userProfile },
+            ...feeds,
+          ];
+        } else {
         }
+      })
+      .catch((err) => {})
+      .then((feeds) => {
+        setFeeds([...feeds]);
       });
     reset();
   };
@@ -163,9 +129,12 @@ function index({
                 subheader={`${userProfile.age} years, ${userProfile.gender}`}
               />
               <CardMedia
+                component="img"
                 className={classes.image}
                 image={userProfile.profilePic}
+                height="100"
                 title="ProfilePic"
+                alt="pic"
               />
               <CardContent></CardContent>
             </Card>
@@ -193,13 +162,7 @@ function index({
                 </form>
                 <List>
                   {feeds.map((feed, index) => {
-                    return (
-                      <FeedItem
-                        feed={feed}
-                        key={index}
-                        // userProfile={userProfile}
-                      />
-                    );
+                    return <FeedItem feed={feed} key={index} />;
                   })}
                 </List>
               </React.Fragment>
@@ -216,6 +179,8 @@ export const getServerSideProps = async ({ req, res, query }) => {
     if (req.cookies.user && req.cookies.user !== "undefined") {
       const { token } = JSON.parse(req.cookies.user);
       const data = verifyToken(token);
+      const { userId } = query;
+
       if (query.userId !== data.id) {
         return {
           redirect: {
@@ -232,8 +197,28 @@ export const getServerSideProps = async ({ req, res, query }) => {
           },
         };
       } else {
+        let url = getAbsoluteURL(`/api/feeds`, req);
+        const feeds = await axios
+          .get(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((result) => {
+            return result.data;
+          })
+          .catch((err) => {});
+
+        url = getAbsoluteURL(`/api/profile/${userId}`, req);
+        let userProfile = await axios
+          .get(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((result) => {
+            return result.data;
+          })
+          .catch((err) => {});
+
         return {
-          props: {},
+          props: { serverFeeds: feeds, userProfile },
         };
       }
     } else {
@@ -253,7 +238,6 @@ export const getServerSideProps = async ({ req, res, query }) => {
 function mapStateToProps(state) {
   return {
     feeds: state.feeds,
-    userProfile: state.userProfile,
     comments: state.comments,
   };
 }
