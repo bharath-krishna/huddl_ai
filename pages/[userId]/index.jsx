@@ -60,7 +60,6 @@ const useStyles = makeStyles(() => ({
 function index({
   cookies,
   allCookies,
-  serverFeeds,
   feeds,
   setFeeds,
   userProfile,
@@ -84,8 +83,18 @@ function index({
       setUnauthorized(true);
     }
     // Set feeds props received from server
-    setFeeds([...serverFeeds]);
   }, []);
+  useEffect(() => {
+    axios
+      .get("/api/feeds", {
+        headers: { Authorization: `Bearer ${cookie.user.token}` },
+      })
+      .then((result) => {
+        setFeeds([...result.data]);
+      })
+      .catch((err) => {});
+  }, []);
+
   const handlogout = () => {
     removeCookie("user");
     router.push("/login");
@@ -109,8 +118,8 @@ function index({
         }
       })
       .catch((err) => {})
-      .then((feeds) => {
-        setFeeds([...feeds]);
+      .then((respFeeds) => {
+        setFeeds([...respFeeds]);
       });
     reset();
   };
@@ -197,17 +206,7 @@ export const getServerSideProps = async ({ req, res, query }) => {
           },
         };
       } else {
-        let url = getAbsoluteURL(`/api/feeds`, req);
-        const feeds = await axios
-          .get(url, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((result) => {
-            return result.data;
-          })
-          .catch((err) => {});
-
-        url = getAbsoluteURL(`/api/profile/${userId}`, req);
+        let url = getAbsoluteURL(`/api/profile/${userId}`, req);
         let userProfile = await axios
           .get(url, {
             headers: { Authorization: `Bearer ${token}` },
@@ -218,7 +217,7 @@ export const getServerSideProps = async ({ req, res, query }) => {
           .catch((err) => {});
 
         return {
-          props: { serverFeeds: feeds, userProfile },
+          props: { userProfile },
         };
       }
     } else {
