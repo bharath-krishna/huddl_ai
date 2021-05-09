@@ -97,6 +97,7 @@ function FeedItem({
         })
         .then((result) => {
           if (result.statusText == "OK") {
+            console.log(like, "like in if");
             setUserLiked(true);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
@@ -109,6 +110,7 @@ function FeedItem({
                 return curFeed;
               }
             });
+            console.log(newFeeds === feeds, "newFeeds === feeds");
             setFeeds([...newFeeds]);
             feed = { ...feed, likes: [...feed?.likes, userProfile.id] };
           }
@@ -121,6 +123,7 @@ function FeedItem({
         })
         .then((result) => {
           if (result.statusText == "OK") {
+            console.log(like, "like in else");
             setUserLiked(like);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
@@ -133,6 +136,7 @@ function FeedItem({
                 return curFeed;
               }
             });
+            console.log(newFeeds === feeds, "newFeeds === feeds in FeedItem");
             setFeeds([...newFeeds]);
           }
         });

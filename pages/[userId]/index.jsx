@@ -119,6 +119,7 @@ function index({
       })
       .catch((err) => {})
       .then((respFeeds) => {
+        console.log(respFeeds === feeds, "respFeeds === feeds in index");
         setFeeds([...respFeeds]);
       });
     reset();

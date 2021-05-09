@@ -93,6 +93,7 @@ function CommentItem({ userProfile, comment, feed, feeds, setFeeds }) {
               return { ...curFeed };
             }
           });
+          console.log(newFeeds === feeds, "newFeeds === feeds in CommentItem");
           setFeeds([...newFeeds]);
         }
       });
