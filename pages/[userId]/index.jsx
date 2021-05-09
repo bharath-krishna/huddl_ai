@@ -86,6 +86,7 @@ function index({
     // Set feeds props received from server
     setFeeds([...serverFeeds]);
   }, []);
+
   const handlogout = () => {
     removeCookie("user");
     router.push("/login");
@@ -100,17 +101,20 @@ function index({
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        if (result.statusText == "OK") {
+        if (result.status == 200) {
           return [
             { ...result.data, likes: [], comments: [], profile: userProfile },
             ...feeds,
           ];
         } else {
+          console.log("result is not ok", result);
         }
       })
-      .catch((err) => {})
-      .then((feeds) => {
-        setFeeds([...feeds]);
+      .catch((err) => {
+        console.log(err);
+      })
+      .then((respFeeds) => {
+        setFeeds([...respFeeds]);
       });
     reset();
   };
@@ -205,7 +209,9 @@ export const getServerSideProps = async ({ req, res, query }) => {
           .then((result) => {
             return result.data;
           })
-          .catch((err) => {});
+          .catch((err) => {
+            console.log(err);
+          });
 
         url = getAbsoluteURL(`/api/profile/${userId}`, req);
         let userProfile = await axios

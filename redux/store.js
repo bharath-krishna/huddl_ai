@@ -8,11 +8,11 @@ import { feedsReducer } from "./reducers/feeds";
 import { commentsReducer } from "../redux/reducers/comments";
 
 const bindMiddleware = (middleware) => {
-  if (process.env.NODE_ENV !== "production") {
-    const { composeWithDevTools } = require("redux-devtools-extension");
-    return composeWithDevTools(applyMiddleware(...middleware));
-  }
-  return applyMiddleware(...middleware);
+  // if (process.env.NODE_ENV !== "production") {
+  const { composeWithDevTools } = require("redux-devtools-extension");
+  return composeWithDevTools(applyMiddleware(...middleware));
+  // }
+  // return applyMiddleware(...middleware);
 };
 
 const allReducers = combineReducers({

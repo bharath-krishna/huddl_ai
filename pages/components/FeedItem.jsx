@@ -96,7 +96,7 @@ function FeedItem({
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
         .then((result) => {
-          if (result.statusText == "OK") {
+          if (result.status == 200) {
             setUserLiked(true);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
@@ -111,16 +111,20 @@ function FeedItem({
             });
             setFeeds([...newFeeds]);
             feed = { ...feed, likes: [...feed?.likes, userProfile.id] };
+          } else {
+            console.log("result is not ok", result);
           }
         })
-        .catch((err) => {});
+        .catch((err) => {
+          console.log(err);
+        });
     } else {
       axios
         .get(`/api/feeds/${feed.id}/unlike`, {
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
         .then((result) => {
-          if (result.statusText == "OK") {
+          if (result.status == 200) {
             setUserLiked(like);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
@@ -134,7 +138,12 @@ function FeedItem({
               }
             });
             setFeeds([...newFeeds]);
+          } else {
+            console.log("result is no ok", result);
           }
+        })
+        .catch((err) => {
+          console.log(err);
         });
     }
   };
@@ -145,7 +154,7 @@ function FeedItem({
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        if (result.statusText == "OK") {
+        if (result.status == 200) {
           // Delete Comments
           feed?.comments.map((comment) => {
             axios.delete(`/api/comments/${comment.id}`, {
@@ -161,9 +170,12 @@ function FeedItem({
           feeds.splice(index, 1);
           setFeeds([...feeds]);
         } else {
+          console.log("result is not ok", result);
         }
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleDialogClose = () => {
