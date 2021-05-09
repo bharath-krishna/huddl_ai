@@ -109,7 +109,7 @@ function index({
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        if (result.statusText == "OK") {
+        if (result.status == 200) {
           return [
             { ...result.data, likes: [], comments: [], profile: userProfile },
             ...feeds,

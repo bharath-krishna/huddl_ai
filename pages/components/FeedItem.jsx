@@ -96,7 +96,7 @@ function FeedItem({
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
         .then((result) => {
-          if (result.statusText == "OK") {
+          if (result.status == 200) {
             console.log(like, "like in if");
             setUserLiked(true);
             let newFeeds = feeds.map((curFeed) => {
@@ -112,6 +112,8 @@ function FeedItem({
             });
             setFeeds([...newFeeds]);
             feed = { ...feed, likes: [...feed?.likes, userProfile.id] };
+          } else {
+            console.log("result is not ok", result);
           }
         })
         .catch((err) => {
@@ -123,7 +125,7 @@ function FeedItem({
           headers: { Authorization: `Bearer ${cookie.user.token}` },
         })
         .then((result) => {
-          if (result.statusText == "OK") {
+          if (result.status == 200) {
             console.log(like, "like in else");
             setUserLiked(like);
             let newFeeds = feeds.map((curFeed) => {
@@ -138,6 +140,8 @@ function FeedItem({
               }
             });
             setFeeds([...newFeeds]);
+          } else {
+            console.log("result is no ok", result);
           }
         })
         .catch((err) => {
@@ -152,7 +156,7 @@ function FeedItem({
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        if (result.statusText == "OK") {
+        if (result.status == 200) {
           // Delete Comments
           feed?.comments.map((comment) => {
             axios.delete(`/api/comments/${comment.id}`, {

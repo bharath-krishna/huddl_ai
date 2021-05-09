@@ -80,7 +80,7 @@ function CommentItem({ userProfile, comment, feed, feeds, setFeeds }) {
         headers: { Authorization: `Bearer ${cookie.user.token}` },
       })
       .then((result) => {
-        if (result.statusText == "OK") {
+        if (result.status == 200) {
           let newFeeds = feeds.map((curFeed) => {
             if (curFeed.id == feed.id) {
               let comments = curFeed?.comments;
@@ -94,6 +94,8 @@ function CommentItem({ userProfile, comment, feed, feeds, setFeeds }) {
             }
           });
           setFeeds([...newFeeds]);
+        } else {
+          console.log("result is not ok", result);
         }
       })
       .catch((err) => {
