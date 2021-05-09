@@ -97,7 +97,6 @@ function FeedItem({
         })
         .then((result) => {
           if (result.status == 200) {
-            console.log(like, "like in if");
             setUserLiked(true);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
@@ -126,7 +125,6 @@ function FeedItem({
         })
         .then((result) => {
           if (result.status == 200) {
-            console.log(like, "like in else");
             setUserLiked(like);
             let newFeeds = feeds.map((curFeed) => {
               if (curFeed.id == feed.id) {
