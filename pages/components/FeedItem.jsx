@@ -110,12 +110,13 @@ function FeedItem({
                 return curFeed;
               }
             });
-            console.log(newFeeds === feeds, "newFeeds === feeds");
             setFeeds([...newFeeds]);
             feed = { ...feed, likes: [...feed?.likes, userProfile.id] };
           }
         })
-        .catch((err) => {});
+        .catch((err) => {
+          console.log(err);
+        });
     } else {
       axios
         .get(`/api/feeds/${feed.id}/unlike`, {
@@ -136,9 +137,11 @@ function FeedItem({
                 return curFeed;
               }
             });
-            console.log(newFeeds === feeds, "newFeeds === feeds in FeedItem");
             setFeeds([...newFeeds]);
           }
+        })
+        .catch((err) => {
+          console.log(err);
         });
     }
   };
@@ -165,9 +168,12 @@ function FeedItem({
           feeds.splice(index, 1);
           setFeeds([...feeds]);
         } else {
+          console.log("result is not ok", result);
         }
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleDialogClose = () => {

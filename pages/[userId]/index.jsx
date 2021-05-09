@@ -115,11 +115,13 @@ function index({
             ...feeds,
           ];
         } else {
+          console.log("result is not ok", result);
         }
       })
-      .catch((err) => {})
+      .catch((err) => {
+        console.log(err);
+      })
       .then((respFeeds) => {
-        console.log(respFeeds === feeds, "respFeeds === feeds in index");
         setFeeds([...respFeeds]);
       });
     reset();
