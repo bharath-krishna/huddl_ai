@@ -11,7 +11,9 @@ const getAbsoluteURL = (url, req = null) => {
     host = window.location.host;
   }
   const isLocalhost = host.indexOf("localhost") === 0;
-  const protocol = isLocalhost ? "http" : "https";
+  // const protocol = isLocalhost ? "http" : "https";
+  // https url issue in GKE
+  const protocol = "http";
   return `${protocol}://${host}${url}`;
 };
 
